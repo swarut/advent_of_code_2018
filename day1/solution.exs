@@ -1,9 +1,8 @@
 defmodule Solver do
 
-  def solve do
-    {:ok, result} = File.read("input.txt")
-    String.split(String.trim(result), "\n") 
-    |> Enum.reduce(0, fn (x, acc) -> acc + String.to_integer(x) end)
+  def part1_solve do
+    get_input()
+    |> Enum.reduce(0, fn (x, acc) -> acc + x end)
   end
 
   def get_input do
@@ -41,5 +40,5 @@ defmodule Solver do
 
 end
 
-# IO.puts Solver.solve()
+IO.puts Solver.part1_solve()
 IO.puts Solver.part2_solve(%{match: nil, current_freq: 0, history: %{}, time: 0}, Solver.get_input())
