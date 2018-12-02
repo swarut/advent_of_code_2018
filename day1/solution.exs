@@ -6,8 +6,8 @@ defmodule Solver do
   end
 
   def get_input do
-    {:ok, result} = File.read("input2.txt")
-    String.split(String.trim(result), "\n") 
+    {:ok, result} = File.read("input.txt")
+    String.split("\n", trim: true) 
     |> Enum.map(fn x -> String.to_integer(x) end)
   end
 
