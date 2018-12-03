@@ -34,6 +34,50 @@ defmodule Solution do
 
     IO.puts(two_count * three_count)
   end
+
+  def part2_solve do
+    list = get_input()
+    [first_row|_] = Enum.take(list, 1)
+    string_length = String.length(first_row)
+
+    range = 0..(string_length - 1)
+    IO.puts inspect(range)
+
+    Enum.reduce_while(range, nil,  fn x, acc ->
+      IO.puts "ITERATION :#{x}"
+      mod = remove_char_at(list, x) |> Enum.sort
+      loop_result = Enum.reduce_while(mod, %{previous_seen: nil, matched_common: nil}, fn x, acc ->
+        cond do
+          acc[:previous_seen] == x -> {:halt, Map.put(acc, :matched_common, x)}
+          true -> {:cont, Map.put(acc, :previous_seen, x)}
+        end 
+      end)
+      case loop_result[:matched_common] do
+        nil -> {:cont, acc}
+        common -> {:halt, common}
+      end
+    end)
+  end
+
+  def remove_char_at(list, index) do
+    Enum.map(list, fn x ->
+      length = String.length(x)
+      head = case index do
+        0      -> ""
+        ^length -> String.slice(x, 0, length - 1)
+        _      -> String.slice(x, 0, index)
+      end
+      tail = case index do
+        0      -> String.slice(x, 1, length)
+        ^length -> ""
+        _      -> String.slice(x, index + 1, length)
+      end        
+      IO.puts "---head #{head} tail #{tail}" 
+      head <> tail
+    end)
+  end
+
 end
 
-Solution.part1_solve()
+# Solution.part1_solve()
+IO.puts inspect(Solution.part2_solve())
