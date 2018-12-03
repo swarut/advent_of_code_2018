@@ -30,9 +30,9 @@ defmodule Solver do
         seen = Map.put(seen, new_freq, new_freq)
 
         acc = Map.put(acc, :current_freq, new_freq)
-        acc = Map.put(acc, :match, may_be_found)
-        acc = Map.put(acc, :seen, seen)
-        acc = Map.put(acc, :time, time + 1 )
+              |> Map.put(:match, may_be_found)
+              |> Map.put(:seen, seen)
+              |> Map.put(:time, time + 1)
         part2_solve(acc, t ++ [h])
       _ -> matched
     end
