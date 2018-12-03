@@ -48,10 +48,7 @@ defmodule Solution do
     string_length = String.length(first_row)
 
     range = 0..(string_length - 1)
-    IO.puts(inspect(range))
-
-    Enum.reduce_while(range, nil, fn x, acc ->
-      IO.puts("ITERATION :#{x}")
+    common = Enum.reduce_while(range, nil, fn x, acc ->
       mod = remove_char_at(list, x) |> Enum.sort()
 
       loop_result =
@@ -67,6 +64,7 @@ defmodule Solution do
         common -> {:halt, common}
       end
     end)
+    IO.puts "Common: #{common}"
   end
 
   def remove_char_at(list, index) do
@@ -87,11 +85,10 @@ defmodule Solution do
           _ -> String.slice(x, index + 1, length)
         end
 
-      IO.puts("---head #{head} tail #{tail}")
       head <> tail
     end)
   end
 end
 
-# Solution.part1_solve()
-IO.puts(inspect(Solution.part2_solve()))
+Solution.part1_solve()
+Solution.part2_solve()
