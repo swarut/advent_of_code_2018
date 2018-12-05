@@ -5,7 +5,7 @@ defmodule Day4 do
     String.split(result, "\n", trim: true)
   end
 
-  def solve do
+  def time_records do
     get_input("input2.txt")
     |> Enum.reduce(%{current_guard: nil}, fn record, acc ->
       [year, month, day, h, m] = String.slice(record, 0, 18) |> String.split(["[","-","-"," ",":","]"], trim: true)
@@ -26,5 +26,29 @@ defmodule Day4 do
       end)
     end)
     # |> inspect
+  end
+
+  def solve do
+    # %{
+    #   "10" => {
+    #     "1519-10-03" => [".", ".", ".", "#", "#", "#"..............],
+    #     "1519-10-04" => [".", ".", ".", "#", "#", "#"..............]
+    #     "1519-10-05" => [".", ".", ".", "#", "#", "#"..............]
+    #   }
+    # }
+    # %{
+    #   "10" => {
+    #     "1519-10-03" => sleep_hour,
+    #     "1519-10-04" => sleep_hour,
+    #     "1519-10-05" => sleep_hour
+    #   }
+    # }
+    # %{
+    #   "10" => best_minute,
+    #   "11" => best_minute
+    # }
+
+    time_rcords
+
   end
 end
