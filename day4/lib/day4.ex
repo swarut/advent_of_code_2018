@@ -1,4 +1,5 @@
 defmodule Day4 do
+  use Bitwise
   def get_input(filename) do
     {:ok, result} = File.read(filename)
     String.split(result, "\n", trim: true) |> Enum.sort
@@ -21,7 +22,7 @@ defmodule Day4 do
     %{
         action: action,
         id: id,
-        date: {"#{year}-#{month}-#{day}"},
+        date: "#{year}-#{month}-#{day}",
         year: year,
         month: month,
         day: day,
@@ -37,9 +38,6 @@ defmodule Day4 do
 
       acc =
         Map.put(acc, :current_guard, record.id)
-        |> Map.update(record.id, [record], fn current_value ->
-          current_value ++ [record]
-        end)
         |> Map.update(record.date, %{record.id => [{record.minute, record.action}]}, fn current_date_map ->
           Map.update(current_date_map, record.id, [{record.minute, record.action}], fn current_date_map_id_list ->
             current_date_map_id_list ++ [{record.minute, record.action}]
@@ -50,6 +48,63 @@ defmodule Day4 do
   end
 
   def solve do
-    time_records
+    ts = time_records
+    |> Enum.map(fn {date, id_records} ->
+      IO.puts("DATE #{date} --- ID_RECORDS #{inspect id_records}")
+      computed_sleep_times = Enum.map(id_records, fn {id, records} -> 
+        range_and_total_sleep_time = range_and_total_sleep_time_from_time_log(records)
+        |> Enum.map(fn item -> Enum.to_list(item) end) |> List.flatten |> Enum.sort
+        {id, range_and_total_sleep_time}
+      end)
+      {date, computed_sleep_times}
+    end)
+
+    Enum.map(ts, fn {k, v} -> v end)  # Remove date 
+    |> List.flatten
+    |> Enum.reduce(%{}, fn {id, minutes}, acc ->
+      Map.update(acc, id, [minutes], fn current_value -> [minutes] ++ current_value end)
+    end)
+
   end
+
+  def range_and_total_sleep_time_from_time_log(records) do
+    range_and_total_sleep_time_from_time_log(records, acc = [])
+  end
+
+  def range_and_total_sleep_time_from_time_log(records = [{time, :on} | rest], [last_minute | rest_acc]) when is_integer(last_minute) do
+    range = last_minute..(time - 1)
+    new_rest_acc = [range] ++ rest_acc
+    range_and_total_sleep_time_from_time_log(rest, new_rest_acc)
+  end
+  def range_and_total_sleep_time_from_time_log(records = [{time, :on} | rest], acc = [last_minute | rest_acc]) when is_map(last_minute) do
+    range_and_total_sleep_time_from_time_log(rest, rest_acc)
+  end
+  def range_and_total_sleep_time_from_time_log(records = [{time, :on} | rest], acc) do
+    range_and_total_sleep_time_from_time_log(rest, acc)
+  end
+
+  # This case should not occur.
+  # def range_and_total_sleep_time_from_time_log([{time, :off} | rest], [last_minute | rest_acc]) when is_integer(last_minute) do
+  # end
+  def range_and_total_sleep_time_from_time_log(records = [{time, :off} | rest], acc = []) do
+    new_rest_acc = [time]
+    range_and_total_sleep_time_from_time_log(rest, new_rest_acc)
+  end
+  def range_and_total_sleep_time_from_time_log(records = [{time, :off} | rest], acc = [last_minute | rest_acc]) when is_map(last_minute) do
+    new_rest_acc = [time] ++ acc
+    range_and_total_sleep_time_from_time_log(rest, new_rest_acc)
+  end
+
+  def range_and_total_sleep_time_from_time_log(records = [], acc) do acc end
+
+  def common_time(list) do
+    Enum.reduce(list, nil, fn items, acc ->
+      processed_item = Enum.map(items, fn item -> 0b1 <<< item end) |> Enum.reduce(0, fn item, acc -> bor(item, acc) end)
+      case acc do
+        nil -> processed_item
+        current_value -> band(processed_item, current_value)
+      end
+    end)
+  end
+
 end
