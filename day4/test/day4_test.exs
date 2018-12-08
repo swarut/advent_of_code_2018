@@ -25,6 +25,12 @@ defmodule Day4Test do
       [2, 3, 5],
       [1, 4, 5, 3]
     ]) === 40
+
+    assert Day4.common_time([
+      [2, 3, 5],
+      [1, 4, 5, 3],
+      []
+    ]) === 40
   end
 end
 

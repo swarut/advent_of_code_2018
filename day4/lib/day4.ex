@@ -1,8 +1,10 @@
 defmodule Day4 do
   use Bitwise
+  
   def get_input(filename) do
     {:ok, result} = File.read(filename)
-    String.split(result, "\n", trim: true) |> Enum.sort
+    String.split(result, "\n", trim: true) 
+    |> Enum.sort
   end
 
   def parse_log(log, acc) do
@@ -32,7 +34,7 @@ defmodule Day4 do
   end
 
   def time_records do
-    get_input("input2.txt")
+    get_input("input.txt")
     |> Enum.reduce(%{current_guard: nil}, fn log, acc ->
       record = parse_log(log, acc)
 
@@ -50,7 +52,7 @@ defmodule Day4 do
   def solve do
     ts = time_records
     |> Enum.map(fn {date, id_records} ->
-      IO.puts("DATE #{date} --- ID_RECORDS #{inspect id_records}")
+      # IO.puts("DATE #{date} --- ID_RECORDS #{inspect id_records}")
       computed_sleep_times = Enum.map(id_records, fn {id, records} -> 
         range_and_total_sleep_time = range_and_total_sleep_time_from_time_log(records)
         |> Enum.map(fn item -> Enum.to_list(item) end) |> List.flatten |> Enum.sort
@@ -59,12 +61,18 @@ defmodule Day4 do
       {date, computed_sleep_times}
     end)
 
-    Enum.map(ts, fn {k, v} -> v end)  # Remove date 
+    id_minutes = Enum.map(ts, fn {k, v} -> v end)  # Remove date 
     |> List.flatten
     |> Enum.reduce(%{}, fn {id, minutes}, acc ->
       Map.update(acc, id, [minutes], fn current_value -> [minutes] ++ current_value end)
     end)
 
+    id_minutes_count = Map.to_list(id_minutes) |> Enum.map( fn {k, v} -> {k, Enum.map(v, fn i -> length(i) end) |> Enum.sum } end)
+    {max_key, _} = Enum.max_by(id_minutes_count, fn {_k, v} -> v end)
+
+    IO.puts "MAX minutes guard id #{max_key}"
+    id_minutes
+    # common_time(id_minutes[max_key])
   end
 
   def range_and_total_sleep_time_from_time_log(records) do
@@ -98,13 +106,16 @@ defmodule Day4 do
   def range_and_total_sleep_time_from_time_log(records = [], acc) do acc end
 
   def common_time(list) do
-    Enum.reduce(list, nil, fn items, acc ->
+    Enum.reject(list, fn x -> length(x) == 0 end)
+    |> Enum.reduce(nil, fn items, acc ->
       processed_item = Enum.map(items, fn item -> 0b1 <<< item end) |> Enum.reduce(0, fn item, acc -> bor(item, acc) end)
       case acc do
         nil -> processed_item
         current_value -> band(processed_item, current_value)
       end
     end)
+    |> inspect(label: "----------------")
+    # |> :math.log2
   end
 
 end
