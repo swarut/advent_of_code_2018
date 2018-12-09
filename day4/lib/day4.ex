@@ -48,7 +48,7 @@ defmodule Day4 do
     |> Map.delete(:current_guard)
   end
 
-  def solve do
+  def id_minutes do
     ts = time_records
     |> Enum.map(fn {date, id_records} ->
       computed_sleep_times = Enum.map(id_records, fn {id, records} -> 
@@ -59,18 +59,55 @@ defmodule Day4 do
       {date, computed_sleep_times}
     end)
 
-    id_minutes = Enum.map(ts, fn {k, v} -> v end)  # Remove date 
+    Enum.map(ts, fn {k, v} -> v end)  # Remove date 
     |> List.flatten
     |> Enum.reduce(%{}, fn {id, minutes}, acc ->
       Map.update(acc, id, [minutes], fn current_value -> [minutes] ++ current_value end)
     end)
+  end
 
-    id_minutes_count = Map.to_list(id_minutes) |> Enum.map( fn {k, v} -> {k, Enum.map(v, fn i -> length(i) end) |> Enum.sum } end)
+  def id_minutes_count(id_minutes) do
+    Map.to_list(id_minutes) |> Enum.map( fn {k, v} -> {k, Enum.map(v, fn i -> length(i) end) |> Enum.sum } end)
+  end
+
+  def part1_solve do
+    id_minutes = id_minutes()
+
+    id_minutes_count = id_minutes_count(id_minutes)
     {max_key, _} = Enum.max_by(id_minutes_count, fn {_k, v} -> v end)
 
     picked_guard = common_time(id_minutes[max_key])
     {picked_minute, _} = Enum.max_by(picked_guard, fn {_,v } -> v end)
     String.to_integer(max_key) * picked_minute
+  end
+
+  def part2_solve do
+    id_minutes = id_minutes()
+    # rec = Map.keys(id_minutes) |> Enum.map( fn y -> Day4.common_time(id_minutes[y]) end)
+    rec = Enum.map(id_minutes, fn {k, v} -> 
+      {k, Day4.common_time(v) |> Map.to_list }
+    end)
+
+    flatten_distributions = Enum.map(rec, fn {id, minutes_distributions} -> minutes_distributions end) |> List.flatten
+    final_distributions = Enum.reduce(flatten_distributions, %{}, fn {minute, count}, acc -> 
+      Map.update(acc, minute, count, fn current_minute ->
+        current_minute + count
+      end)
+    end)
+    |> Enum.sort(fn {k1, v1}, {k2, v2} ->  v2 < v1 end)
+    |> Enum.reverse
+    |> Enum.reverse
+    rec
+
+    Enum.reduce(rec, %{}, fn {id, minute_distributions}, acc ->
+      case minute_distributions do
+        [] -> Map.put(acc, id, [])
+        _ ->
+          IO.puts(inspect minute_distributions, charlists: false)
+          max = Enum.max_by(minute_distributions, fn {m, c} -> c end)
+          Map.put(acc, id, max)
+      end
+    end)
   end
 
   def range_and_total_sleep_time_from_time_log(records) do
@@ -104,6 +141,7 @@ defmodule Day4 do
   def range_and_total_sleep_time_from_time_log(records = [], acc) do acc end
 
   def common_time(list) do
+    # IO.puts inspect(list, charlists: false)
     Enum.reject(list, fn x -> length(x) == 0 end)
     |> Enum.reduce(%{}, fn minutes, acc ->
       Enum.reduce(minutes, acc, fn minute, minute_acc -> 
