@@ -37,7 +37,6 @@ defmodule Day4 do
     get_input("input.txt")
     |> Enum.reduce(%{current_guard: nil}, fn log, acc ->
       record = parse_log(log, acc)
-
       acc =
         Map.put(acc, :current_guard, record.id)
         |> Map.update(record.date, %{record.id => [{record.minute, record.action}]}, fn current_date_map ->
@@ -52,7 +51,6 @@ defmodule Day4 do
   def solve do
     ts = time_records
     |> Enum.map(fn {date, id_records} ->
-      # IO.puts("DATE #{date} --- ID_RECORDS #{inspect id_records}")
       computed_sleep_times = Enum.map(id_records, fn {id, records} -> 
         range_and_total_sleep_time = range_and_total_sleep_time_from_time_log(records)
         |> Enum.map(fn item -> Enum.to_list(item) end) |> List.flatten |> Enum.sort
@@ -70,9 +68,9 @@ defmodule Day4 do
     id_minutes_count = Map.to_list(id_minutes) |> Enum.map( fn {k, v} -> {k, Enum.map(v, fn i -> length(i) end) |> Enum.sum } end)
     {max_key, _} = Enum.max_by(id_minutes_count, fn {_k, v} -> v end)
 
-    IO.puts "MAX minutes guard id #{max_key}"
-    id_minutes
-    # common_time(id_minutes[max_key])
+    picked_guard = common_time(id_minutes[max_key])
+    {picked_minute, _} = Enum.max_by(picked_guard, fn {_,v } -> v end)
+    String.to_integer(max_key) * picked_minute
   end
 
   def range_and_total_sleep_time_from_time_log(records) do
@@ -107,15 +105,27 @@ defmodule Day4 do
 
   def common_time(list) do
     Enum.reject(list, fn x -> length(x) == 0 end)
-    |> Enum.reduce(nil, fn items, acc ->
-      processed_item = Enum.map(items, fn item -> 0b1 <<< item end) |> Enum.reduce(0, fn item, acc -> bor(item, acc) end)
-      case acc do
-        nil -> processed_item
-        current_value -> band(processed_item, current_value)
-      end
+    |> Enum.reduce(%{}, fn minutes, acc ->
+      Enum.reduce(minutes, acc, fn minute, minute_acc -> 
+        Map.update(minute_acc, minute, 1, fn current_value -> 
+          current_value + 1
+        end)
+      end) 
     end)
-    |> inspect(label: "----------------")
-    # |> :math.log2
   end
+
+  # Can't make this perfect
+  # def common_time(list) do
+  #   Enum.reject(list, fn x -> length(x) == 0 end)
+  #   |> Enum.reduce(nil, fn items, acc ->
+  #     # processed_item = Enum.map(items, fn item -> 0b1 <<< item end) |> Enum.reduce(0, fn item, acc2 -> bor(item, acc2) end)
+  #     processed_item = Enum.reduce(0, fn item, acc2 -> bor(item, acc2) end)
+  #     case acc do
+  #       nil -> processed_item
+  #       current_value -> band(processed_item, current_value)
+  #     end
+  #   end)
+  #   |> :math.log2
+  # end
 
 end
