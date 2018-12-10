@@ -49,19 +49,25 @@ defmodule Day5 do
 
   ## Examples
       iex> Day5.process_units('AaB')
-      "B"
+      'B'
   """
   def process_units(units) do
     process_units(units, [])
   end
 
-  def process_units([unit | rest], [recent_processed_unit | rest_of_processed_units]) do
+  def process_units([unit | rest], processed_units = [recent_processed_unit | rest_of_processed_units]) do
     case opposite_polar?(unit, recent_processed_unit) do
-      true ->
-      false ->
+      true -> process_units(rest, rest_of_processed_units)
+      false -> process_units(rest, [unit] ++ processed_units)
     end
   end
 
+  def process_units([unit | rest], []) do
+    process_units(rest, [unit])
+  end
 
+  def process_units([], processed_units) do
+    processed_units
+  end
 
 end
