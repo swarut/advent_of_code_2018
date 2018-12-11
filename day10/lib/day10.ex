@@ -65,4 +65,120 @@ defmodule Day10 do
       %{x: String.to_integer(x), y: String.to_integer(y), vx: String.to_integer(vx), vy: String.to_integer(vy)}
     end)
   end
+
+  @doc """
+  Find max x
+
+  ## Example
+      iex> Day10.find_max_x([
+      ...> %{x: 10, y: 1, vx: 1, vy: 1},
+      ...> %{x: 9, y: 10, vx: 1, vy: 1},
+      ...> %{x: -1, y: 11, vx: 1, vy: 1},
+      ...> %{x: 14, y: -1, vx: 1, vy: 1}
+      ...> ])
+      14
+  """
+  def find_max_x(list) do
+    Enum.max_by(list, fn dot -> dot.x end).x
+  end
+
+  @doc """
+  Find max y
+
+  ## Example
+      iex> Day10.find_max_y([
+      ...> %{x: 10, y: 1, vx: 1, vy: 1},
+      ...> %{x: 9, y: 10, vx: 1, vy: 1},
+      ...> %{x: -1, y: 11, vx: 1, vy: 1},
+      ...> %{x: 14, y: -1, vx: 1, vy: 1}
+      ...> ])
+      11
+  """
+  def find_max_y(dots) do
+    Enum.max_by(dots, fn dot -> dot.y end).y
+  end
+
+  @doc """
+  Find min x
+
+  ## Example
+      iex> Day10.find_min_x([
+      ...> %{x: 10, y: 1, vx: 1, vy: 1},
+      ...> %{x: 9, y: 10, vx: 1, vy: 1},
+      ...> %{x: -1, y: 11, vx: 1, vy: 1},
+      ...> %{x: 14, y: -1, vx: 1, vy: 1}
+      ...> ])
+      -1
+  """
+  def find_min_x(list) do
+    Enum.min_by(list, fn dot -> dot.x end).x
+  end
+
+  @doc """
+  Find min y
+
+  ## Example
+      iex> Day10.find_min_y([
+      ...> %{x: 10, y: 1, vx: 1, vy: 1},
+      ...> %{x: 9, y: 10, vx: 1, vy: 1},
+      ...> %{x: -1, y: 11, vx: 1, vy: 1},
+      ...> %{x: 14, y: -1, vx: 1, vy: 1}
+      ...> ])
+      -1
+  """
+  def find_min_y(dots) do
+    Enum.min_by(dots, fn dot -> dot.y end).y
+  end
+
+  @doc """
+  Translate to the new position according to the given time
+
+  ## Example
+      iex> Day10.translate([
+      ...> %{x: 10, y: 1, vx: -3, vy: 1},
+      ...> %{x: 9, y: 10, vx: 2, vy: 1},
+      ...> %{x: -1, y: 11, vx: 3, vy: -1},
+      ...> %{x: 14, y: -1, vx: -1, vy: 2}
+      ...> ], 1)
+      [
+        %{x: 7, y: 2},
+        %{x: 11, y: 11},
+        %{x: 2, y: 10},
+        %{x: 13, y: 1}
+      ]
+      iex> Day10.translate([
+      ...> %{x: 10, y: 1, vx: -3, vy: 1},
+      ...> %{x: 9, y: 10, vx: 2, vy: 1},
+      ...> %{x: -1, y: 11, vx: 3, vy: -1},
+      ...> %{x: 14, y: -1, vx: -1, vy: 2}
+      ...> ], 4)
+      [
+        %{x: -2, y: 5},
+        %{x: 17, y: 14},
+        %{x: 11, y: 7},
+        %{x: 10, y: 7}
+      ]
+  """
+  def translate(dots, seconds) do
+    dots |> Enum.map( fn dot ->
+      %{x: dot.x + (seconds * dot.vx), y: dot.y + (seconds * dot.vy)}
+    end)
+  end
+
+  # @doc """
+  # Get the list of dots, then try to find the maximum number of second that
+  # the min/max x and min/max y are not change after translation.
+
+  # ## Example
+  #     iex> Day10.solve([
+  #     ...> %{x: 1, y: 1, vx: 1, vy: 1},
+  #     ...> %{x: 10, y: 10, vx: -2, vy: -2},
+  #     ...> ])
+  # """
+  # def part1_solve() do
+
+  # end
+
 end
+
+# Slowest movement should be at the edge
