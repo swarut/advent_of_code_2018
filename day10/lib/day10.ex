@@ -67,6 +67,34 @@ defmodule Day10 do
   end
 
   @doc """
+  Inject IDs to the dots so that we can refer to each dot later
+
+  ## Example
+      iex> Day10.inject_id([
+      ...> %{x: 10, y: 1, vx: 1, vy: 1},
+      ...> %{x: 9, y: 10, vx: 1, vy: 1},
+      ...> %{x: -1, y: 11, vx: 1, vy: 1},
+      ...> %{x: 14, y: -1, vx: 1, vy: 1}
+      ...> ])
+      [
+        %{x: 10, y: 1, vx: 1, vy: 1, id: 0},
+        %{x: 9, y: 10, vx: 1, vy: 1, id: 1},
+        %{x: -1, y: 11, vx: 1, vy: 1, id: 2},
+        %{x: 14, y: -1, vx: 1, vy: 1, id: 3}
+      ]
+  """
+  def inject_id(dots) do
+    # NOTE: Can be improved with MapSet, so that reverse at the end is not needed
+    result = dots |> Enum.reduce(%{counter: 0, result: []}, fn dot, acc = %{counter: counter, result: result} ->
+      acc
+      |> Map.put(:result, [Map.put(dot, :id, counter)] ++ result)
+      |> Map.put(:counter, counter + 1)
+    end)
+
+    result[:result] |> Enum.reverse
+  end
+
+  @doc """
   Find max x
 
   ## Example
@@ -129,6 +157,19 @@ defmodule Day10 do
   def find_min_y(dots) do
     Enum.min_by(dots, fn dot -> dot.y end).y
   end
+
+  @doc """
+  Find leftmost horizontal edge
+
+  ## Example
+      iex> Day10.leftmost_horizontal_edge([
+      ...> %{x: 10, y: 1, vx: 1, vy: 1},
+      ...> %{x: 9, y: 10, vx: 1, vy: 1},
+      ...> %{x: -1, y: 11, vx: 1, vy: 1},
+      ...> %{x: 14, y: -1, vx: 1, vy: 1}
+      ...> ])
+
+  """
 
   @doc """
   Translate to the new position according to the given time
