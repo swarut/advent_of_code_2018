@@ -159,20 +159,25 @@ defmodule Day10 do
   end
 
   @doc """
-  Find leftmost horizontal edge
+  Find current boundary
 
   ## Example
-      iex> Day10.leftmost_horizontal_edge([
-      ...> %{x: 10, y: 1, vx: 1, vy: 1},
-      ...> %{x: 9, y: 10, vx: 1, vy: 1},
-      ...> %{x: -1, y: 11, vx: 1, vy: 1},
-      ...> %{x: 14, y: -1, vx: 1, vy: 1}
+      iex> Day10.calculate_current_boundary([
+      ...> %{x: 10, y: 1},
+      ...> %{x: 9, y: 10},
+      ...> %{x: -1, y: 11},
+      ...> %{x: 14, y: -1}
       ...> ])
-
+      180
   """
+  def calculate_current_boundary(coordinate) do
+    width = find_max_x(coordinate) - find_min_x(coordinate)
+    height = find_max_y(coordinate) - find_min_y(coordinate)
+    width * height
+  end
 
   @doc """
-  Translate to the new position according to the given time
+  Translate to the new position according to the given time then return the new coordinates
 
   ## Example
       iex> Day10.translate([
@@ -200,15 +205,15 @@ defmodule Day10 do
         %{x: 10, y: 7}
       ]
   """
-  def translate(dots, seconds) do
+  def translate(dots, second) do
     dots |> Enum.map( fn dot ->
-      %{x: dot.x + (seconds * dot.vx), y: dot.y + (seconds * dot.vy)}
+      %{x: dot.x + (second * dot.vx), y: dot.y + (second * dot.vy)}
     end)
   end
 
   # @doc """
-  # Get the list of dots, then try to find the maximum number of second that
-  # the min/max x and min/max y are not change after translation.
+  # Get the list of dots, then try to find the number of second that
+  # the boundary
 
   # ## Example
   #     iex> Day10.solve([
@@ -216,8 +221,25 @@ defmodule Day10 do
   #     ...> %{x: 10, y: 10, vx: -2, vy: -2},
   #     ...> ])
   # """
-  # def part1_solve() do
+  # def part1_solve(dots) do
+  #   dots
+  #   # |> Enum.reduce_while(fn dot, )
+  # end
 
+  # def iterate(dots) do
+  #   second = round(:rand.normal * 100)
+  #   iterate(dots, second, [])
+  # end
+
+  # def iterate(dots, second, acc = %{previous_boundary: previous_boundary, previous_second: previous_second}) do
+
+  # end
+
+  # def iterate(dots, second, []) do
+  #   translated_coordinates = translate(dots, second)
+  #   current_boundary = calculate_current_boundary(translated_coordinates)
+  #   new_second = second + 20
+  #   iterate(dots, new_second, %{previous_boundary: current_boundary, previous_second: second})
   # end
 
 end
