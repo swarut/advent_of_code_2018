@@ -211,36 +211,90 @@ defmodule Day10 do
     end)
   end
 
-  # @doc """
-  # Get the list of dots, then try to find the number of second that
-  # the boundary
+  @doc """
+  Get the list of dots, then try to find the number of second that
+  the boundary
 
-  # ## Example
-  #     iex> Day10.solve([
-  #     ...> %{x: 1, y: 1, vx: 1, vy: 1},
-  #     ...> %{x: 10, y: 10, vx: -2, vy: -2},
-  #     ...> ])
-  # """
-  # def part1_solve(dots) do
-  #   dots
-  #   # |> Enum.reduce_while(fn dot, )
-  # end
+  ## Example
+      iex> Day10.solve([
+      ...>%{x: 9, y:  1, vx: 0, vy:  2},
+      ...>%{x: 7, y:  0, vx:-1, vy:  0},
+      ...>%{x: 3, y: -2, vx:-1, vy:  1},
+      ...>%{x: 6, y: 10, vx:-2, vy: -1},
+      ...>%{x: 2, y: -4, vx: 2, vy:  2},
+      ...>%{x:-6, y: 10, vx: 2, vy: -2},
+      ...>%{x: 1, y:  8, vx: 1, vy: -1},
+      ...>%{x: 1, y:  7, vx: 1, vy:  0},
+      ...>%{x:-3, y: 11, vx: 1, vy: -2},
+      ...>%{x: 7, y:  6, vx:-1, vy: -1},
+      ...>%{x:-2, y:  3, vx: 1, vy:  0},
+      ...>%{x:-4, y:  3, vx: 2, vy:  0},
+      ...>%{x:10, y: -3, vx:-1, vy:  1},
+      ...>%{x: 5, y: 11, vx: 1, vy: -2},
+      ...>%{x: 4, y:  7, vx: 0, vy: -1},
+      ...>%{x: 8, y: -2, vx: 0, vy:  1},
+      ...>%{x:15, y:  0, vx:-2, vy:  0},
+      ...>%{x: 1, y:  6, vx: 1, vy:  0},
+      ...>%{x: 8, y:  9, vx: 0, vy: -1},
+      ...>%{x: 3, y:  3, vx:-1, vy:  1},
+      ...>%{x: 0, y:  5, vx: 0, vy: -1},
+      ...>%{x:-2, y:  2, vx: 2, vy:  0},
+      ...>%{x: 5, y: -2, vx: 1, vy:  2},
+      ...>%{x: 1, y:  4, vx: 2, vy:  1},
+      ...>%{x:-2, y:  7, vx: 2, vy: -2},
+      ...>%{x: 3, y:  6, vx:-1, vy: -1},
+      ...>%{x: 5, y:  0, vx: 1, vy:  0},
+      ...>%{x:-6, y:  0, vx: 2, vy:  0},
+      ...>%{x: 5, y:  9, vx: 1, vy: -2},
+      ...>%{x:14, y:  7, vx:-2, vy:  0},
+      ...>%{x:-3, y:  6, vx: 2, vy: -1},
+      ...>])
+      3
+  """
+  def part1_solve(dots) do
+    dots |> iterate
+  end
 
-  # def iterate(dots) do
-  #   second = round(:rand.normal * 100)
-  #   iterate(dots, second, [])
-  # end
+  def iterate(dots) do
+    second = abs(round(:rand.normal * 1000))
+    iterate(dots, second, [])
+  end
 
-  # def iterate(dots, second, acc = %{previous_boundary: previous_boundary, previous_second: previous_second}) do
+  def iterate(dots, second, acc = %{previous_boundary: previous_boundary, previous_second: previous_second}) do
+    translated_coordinates = translate(dots, second)
+    current_boundary = calculate_current_boundary(translated_coordinates)
+    # IO.puts("SECOND: #{second}")
+    # IO.puts("previouse second: #{previous_second}")
+    # IO.puts("previouse boundary: #{previous_boundary}")
+    # IO.puts("current boundray: #{current_boundary}")
+    IO.puts("#{previous_second}, #{second}, #{previous_boundary}, #{current_boundary}")
+    cond do
+      abs(second - previous_second) == 1 -> %{second: second, previous_second: previous_second}
+      previous_boundary - current_boundary  > 0 ->
+        # new_second = second + round((second - previous_second)/2)
+        new_second = second * 2
+        new_acc = acc |> Map.put(:previous_boundary, current_boundary) |> Map.put(:previous_second, second)
+        iterate(dots, new_second, new_acc)
+        # Merging
+      previous_boundary - current_boundary < 0 ->
+        # Breaking
+        new_second = second - round((previous_second - second)/2)
+        new_acc = acc |> Map.put(:previous_boundary, current_boundary) |> Map.put(:previous_second, second)
+        iterate(dots, new_second, new_acc)
+    end
+  end
 
-  # end
+  def iterate(dots, second, []) do
+    translated_coordinates = translate(dots, second)
+    current_boundary = calculate_current_boundary(translated_coordinates)
+    new_second = second * 2
+    iterate(dots, new_second, %{previous_boundary: current_boundary, previous_second: second})
+  end
 
-  # def iterate(dots, second, []) do
-  #   translated_coordinates = translate(dots, second)
-  #   current_boundary = calculate_current_boundary(translated_coordinates)
-  #   new_second = second + 20
-  #   iterate(dots, new_second, %{previous_boundary: current_boundary, previous_second: second})
-  # end
+
+  def get_dots do
+    get_input("input.txt") |> parse_input
+  end
 
 end
 
