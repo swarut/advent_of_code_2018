@@ -1,2 +1,4 @@
 .vscode
 .vscode/*
+*/.elixir_ls
+*/*/.elixir_ls
