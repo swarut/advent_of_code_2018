@@ -218,36 +218,36 @@ defmodule Day10 do
   ## Example
       iex> Day10.solve([
       ...>%{x: 9, y:  1, vx: 0, vy:  2},
-      ...>%{x: 7, y:  0, vx:-1, vy:  0},
-      ...>%{x: 3, y: -2, vx:-1, vy:  1},
-      ...>%{x: 6, y: 10, vx:-2, vy: -1},
+      ...>%{x: 7, y:  0, vx: -1, vy:  0},
+      ...>%{x: 3, y: -2, vx: -1, vy:  1},
+      ...>%{x: 6, y: 10, vx: -2, vy: -1},
       ...>%{x: 2, y: -4, vx: 2, vy:  2},
-      ...>%{x:-6, y: 10, vx: 2, vy: -2},
+      ...>%{x: -6, y: 10, vx: 2, vy: -2},
       ...>%{x: 1, y:  8, vx: 1, vy: -1},
       ...>%{x: 1, y:  7, vx: 1, vy:  0},
-      ...>%{x:-3, y: 11, vx: 1, vy: -2},
-      ...>%{x: 7, y:  6, vx:-1, vy: -1},
-      ...>%{x:-2, y:  3, vx: 1, vy:  0},
-      ...>%{x:-4, y:  3, vx: 2, vy:  0},
-      ...>%{x:10, y: -3, vx:-1, vy:  1},
+      ...>%{x: -3, y: 11, vx: 1, vy: -2},
+      ...>%{x: 7, y:  6, vx: -1, vy: -1},
+      ...>%{x: -2, y:  3, vx: 1, vy:  0},
+      ...>%{x: -4, y:  3, vx: 2, vy:  0},
+      ...>%{x: 10, y: -3, vx: -1, vy:  1},
       ...>%{x: 5, y: 11, vx: 1, vy: -2},
       ...>%{x: 4, y:  7, vx: 0, vy: -1},
       ...>%{x: 8, y: -2, vx: 0, vy:  1},
-      ...>%{x:15, y:  0, vx:-2, vy:  0},
+      ...>%{x: 15, y:  0, vx: -2, vy:  0},
       ...>%{x: 1, y:  6, vx: 1, vy:  0},
       ...>%{x: 8, y:  9, vx: 0, vy: -1},
-      ...>%{x: 3, y:  3, vx:-1, vy:  1},
+      ...>%{x: 3, y:  3, vx: -1, vy:  1},
       ...>%{x: 0, y:  5, vx: 0, vy: -1},
-      ...>%{x:-2, y:  2, vx: 2, vy:  0},
+      ...>%{x: -2, y:  2, vx: 2, vy:  0},
       ...>%{x: 5, y: -2, vx: 1, vy:  2},
       ...>%{x: 1, y:  4, vx: 2, vy:  1},
-      ...>%{x:-2, y:  7, vx: 2, vy: -2},
-      ...>%{x: 3, y:  6, vx:-1, vy: -1},
+      ...>%{x: -2, y:  7, vx: 2, vy: -2},
+      ...>%{x: 3, y:  6, vx: -1, vy: -1},
       ...>%{x: 5, y:  0, vx: 1, vy:  0},
-      ...>%{x:-6, y:  0, vx: 2, vy:  0},
+      ...>%{x: -6, y:  0, vx: 2, vy:  0},
       ...>%{x: 5, y:  9, vx: 1, vy: -2},
-      ...>%{x:14, y:  7, vx:-2, vy:  0},
-      ...>%{x:-3, y:  6, vx: 2, vy: -1},
+      ...>%{x: 14, y:  7, vx: -2, vy:  0},
+      ...>%{x: -3, y:  6, vx: 2, vy: -1},
       ...>])
       3
   """
@@ -260,42 +260,50 @@ defmodule Day10 do
     iterate(dots, second, [])
   end
 
-  def iterate(dots, second, acc = %{previous_boundary: previous_boundary, previous_second: previous_second}) do
+  def iterate(dots, second, acc = %{previous_boundary: previous_boundary, previous_second: previous_second, upper_bound_second: upper_bound_second, lower_bound_second: lower_bound_second}) do
     translated_coordinates = translate(dots, second)
     current_boundary = calculate_current_boundary(translated_coordinates)
-    # IO.puts("SECOND: #{second}")
-    # IO.puts("previouse second: #{previous_second}")
-    # IO.puts("previouse boundary: #{previous_boundary}")
-    # IO.puts("current boundray: #{current_boundary}")
-    IO.puts("#{previous_second}, #{second}, #{previous_boundary}, #{current_boundary}")
+    IO.puts("SECOND: #{second}")
+    IO.puts("previous second: #{previous_second}")
+    IO.puts("upper bound second: #{upper_bound_second}")
+    IO.puts("boundary movement: #{boundary_movement(previous_boundary, current_boundary)}")
+    IO.puts("======================================")
     cond do
       abs(second - previous_second) == 1 -> %{second: second, previous_second: previous_second}
       previous_boundary - current_boundary  > 0 ->
-        # new_second = second + round((second - previous_second)/2)
-        new_second = second * 2
-        new_acc = acc |> Map.put(:previous_boundary, current_boundary) |> Map.put(:previous_second, second)
-        iterate(dots, new_second, new_acc)
         # Merging
+        next_second = case upper_bound_second do
+          nil -> second * 2 # No max second yet, keep on guessing that more is required
+          _   -> second + round((upper_bound_second - second)/2) # Max second is know, so we should increase the amount of second to be within half fo current second and max second
+        end
+
+        new_acc = acc |> Map.put(:previous_boundary, current_boundary) |> Map.put(:previous_second, second) |> Map.put(:lower_bound_second, second)
+        iterate(dots, next_second, new_acc)
+
       previous_boundary - current_boundary < 0 ->
         # Breaking
-        new_second = second - round((previous_second - second)/2)
-        new_acc = acc |> Map.put(:previous_boundary, current_boundary) |> Map.put(:previous_second, second)
-        iterate(dots, new_second, new_acc)
+        next_second = second + round((second - lower_bound_second)/2)
+        new_acc = acc |> Map.put(:previous_boundary, current_boundary) |> Map.put(:previous_second, second) |> Map.put(:upper_bound_second, previous_second)
+        iterate(dots, next_second, new_acc)
     end
   end
 
   def iterate(dots, second, []) do
     translated_coordinates = translate(dots, second)
     current_boundary = calculate_current_boundary(translated_coordinates)
-    new_second = second * 2
-    iterate(dots, new_second, %{previous_boundary: current_boundary, previous_second: second})
+    next_second = second * 2
+    iterate(dots, next_second, %{previous_boundary: current_boundary, previous_second: second, lower_bound_second: 0, upper_bound_second: nil})
   end
 
-
   def get_dots do
-    get_input("input.txt") |> parse_input
+    get_input("input2.txt") |> parse_input
+  end
+
+  def boundary_movement(prev, next) do
+    cond do
+      (prev - next) < 0 -> "Expand"
+      (prev - next) > 0 -> "Shrink"
+    end
   end
 
 end
-
-# Slowest movement should be at the edge
