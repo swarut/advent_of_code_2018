@@ -1,6 +1,6 @@
-defmodule Day10 do
+defmodule Day10_2 do
   @moduledoc """
-  Documentation for Day10.
+  Documentation for Day10_2.
   """
 
   @doc """
@@ -8,7 +8,7 @@ defmodule Day10 do
 
   ## Examples
 
-      iex> Day10.get_input("input2.txt")
+      iex> Day10_2.get_input("input2.txt")
       [
         "position=\< 9,  1\> velocity=\< 0,  2\>",
         "position=\< 7,  0\> velocity=\<-1,  0\>",
@@ -52,10 +52,10 @@ defmodule Day10 do
   Parse input
 
   ## Example
-      iex> Day10.parse_input(["position=\<-3,  6\> velocity=\< 2, -1\>"])
+      iex> Day10_2.parse_input(["position=\<-3,  6\> velocity=\< 2, -1\>"])
       [%{x: -3, y: 6, vx: 2, vy: -1}]
 
-      iex> Day10.parse_input(["position=\< 5,  9\> velocity=\< 1, -2\>",])
+      iex> Day10_2.parse_input(["position=\< 5,  9\> velocity=\< 1, -2\>",])
       [%{x: 5, y: 9, vx: 1, vy: -2}]
   """
   def parse_input(list) do
@@ -70,7 +70,7 @@ defmodule Day10 do
   Inject IDs to the dots so that we can refer to each dot later
 
   ## Example
-      iex> Day10.inject_id([
+      iex> Day10_2.inject_id([
       ...> %{x: 10, y: 1, vx: 1, vy: 1},
       ...> %{x: 9, y: 10, vx: 1, vy: 1},
       ...> %{x: -1, y: 11, vx: 1, vy: 1},
@@ -98,7 +98,7 @@ defmodule Day10 do
   Find max x
 
   ## Example
-      iex> Day10.find_max_x([
+      iex> Day10_2.find_max_x([
       ...> %{x: 10, y: 1, vx: 1, vy: 1},
       ...> %{x: 9, y: 10, vx: 1, vy: 1},
       ...> %{x: -1, y: 11, vx: 1, vy: 1},
@@ -114,7 +114,7 @@ defmodule Day10 do
   Find max y
 
   ## Example
-      iex> Day10.find_max_y([
+      iex> Day10_2.find_max_y([
       ...> %{x: 10, y: 1, vx: 1, vy: 1},
       ...> %{x: 9, y: 10, vx: 1, vy: 1},
       ...> %{x: -1, y: 11, vx: 1, vy: 1},
@@ -130,7 +130,7 @@ defmodule Day10 do
   Find min x
 
   ## Example
-      iex> Day10.find_min_x([
+      iex> Day10_2.find_min_x([
       ...> %{x: 10, y: 1, vx: 1, vy: 1},
       ...> %{x: 9, y: 10, vx: 1, vy: 1},
       ...> %{x: -1, y: 11, vx: 1, vy: 1},
@@ -146,7 +146,7 @@ defmodule Day10 do
   Find min y
 
   ## Example
-      iex> Day10.find_min_y([
+      iex> Day10_2.find_min_y([
       ...> %{x: 10, y: 1, vx: 1, vy: 1},
       ...> %{x: 9, y: 10, vx: 1, vy: 1},
       ...> %{x: -1, y: 11, vx: 1, vy: 1},
@@ -162,7 +162,7 @@ defmodule Day10 do
   Find current boundary
 
   ## Example
-      iex> Day10.calculate_current_boundary([
+      iex> Day10_2.calculate_current_boundary([
       ...> %{x: 10, y: 1},
       ...> %{x: 9, y: 10},
       ...> %{x: -1, y: 11},
@@ -180,7 +180,7 @@ defmodule Day10 do
   Translate to the new position according to the given time then return the new coordinates
 
   ## Example
-      iex> Day10.translate([
+      iex> Day10_2.translate([
       ...> %{x: 10, y: 1, vx: -3, vy: 1},
       ...> %{x: 9, y: 10, vx: 2, vy: 1},
       ...> %{x: -1, y: 11, vx: 3, vy: -1},
@@ -192,7 +192,7 @@ defmodule Day10 do
         %{x: 2, y: 10},
         %{x: 13, y: 1}
       ]
-      iex> Day10.translate([
+      iex> Day10_2.translate([
       ...> %{x: 10, y: 1, vx: -3, vy: 1},
       ...> %{x: 9, y: 10, vx: 2, vy: 1},
       ...> %{x: -1, y: 11, vx: 3, vy: -1},
@@ -216,7 +216,7 @@ defmodule Day10 do
   the boundary
 
   ## Example
-      iex> Day10.solve([
+      iex> Day10_2.solve([
       ...>%{x: 9, y:  1, vx: 0, vy:  2},
       ...>%{x: 7, y:  0, vx: -1, vy:  0},
       ...>%{x: 3, y: -2, vx: -1, vy:  1},
@@ -256,42 +256,65 @@ defmodule Day10 do
   end
 
   def iterate(dots) do
-    iterate(dots, 0, [])
+    second = abs(round(:rand.normal * 10))
+    iterate(dots, second, [])
   end
 
-  def iterate(dots, second, acc = %{previous_boundary: previous_boundary, previous_second: previous_second}) do
+  def iterate(dots, second, acc = %{previous_boundary: previous_boundary, previous_second: previous_second, upper_bound_second: upper_bound_second, lower_bound_second: lower_bound_second}) do
     translated_coordinates = translate(dots, second)
     current_boundary = calculate_current_boundary(translated_coordinates)
-    IO.puts("SECOND: #{second}")
-    IO.puts("previous second: #{previous_second}")
-    IO.puts("boundary movement: #{boundary_movement(previous_boundary, current_boundary)}")
-    IO.puts("======================================")
+
     cond do
+      abs(second - previous_second) == 0 -> %{second: second, previous_second: previous_second}
       previous_boundary - current_boundary  > 0 ->
-        # Shrink
-        IO.puts("========== SHRINK ====================")
-        next_second = second + 1
+        IO.puts("========== MERGE ====================")
+        IO.puts("SECOND: #{second}")
+        IO.puts("previous second: #{previous_second}")
+        IO.puts("upper bound second: #{upper_bound_second}")
+        IO.puts("lower bound second: #{lower_bound_second}")
+        IO.puts("boundary movement: #{boundary_movement(previous_boundary, current_boundary)}")
+        IO.puts("======================================")
+        # Merging
+        next_second = case upper_bound_second do
+          nil -> second * 2 # No max second yet, keep on guessing that more is required
+          _   -> second + round((upper_bound_second - second)/2) # Max second is know, so we should increase the amount of second to be within half fo current second and max second
+        end
 
         new_acc = acc
         |> Map.put(:previous_boundary, current_boundary)
         |> Map.put(:previous_second, second)
+        |> Map.put(:upper_bound_second, upper_bound_second)
+        |> Map.put(:lower_bound_second, second)
         iterate(dots, next_second, new_acc)
 
       previous_boundary - current_boundary < 0 ->
-        IO.puts("========== EXPAND ====================")
-        %{answer: previous_second, second: second, previous_second: previous_second}
+        IO.puts("========== BREAK ====================")
+        IO.puts("SECOND: #{second}")
+        IO.puts("previous second: #{previous_second}")
+        IO.puts("upper bound second: #{upper_bound_second}")
+        IO.puts("lower bound second: #{lower_bound_second}")
+        IO.puts("boundary movement: #{boundary_movement(previous_boundary, current_boundary)}")
+        IO.puts("======================================")
+        # Breaking
+        next_second = second - round((second - lower_bound_second)/2)
+        new_acc = acc
+        |> Map.put(:previous_boundary, current_boundary)
+        |> Map.put(:previous_second, second)
+        |> Map.put(:upper_bound_second, previous_second)
+        |> Map.put(:lower_bound_second, lower_bound_second)
+        iterate(dots, next_second, new_acc)
     end
   end
 
   def iterate(dots, second, []) do
     translated_coordinates = translate(dots, second)
     current_boundary = calculate_current_boundary(translated_coordinates)
-    next_second = second + 1
-    iterate(dots, next_second, %{previous_boundary: current_boundary, previous_second: second})
+    next_second = second * 2
+    iterate(dots, 15, %{previous_boundary: current_boundary, previous_second: second, lower_bound_second: 0, upper_bound_second: 30})
   end
 
   def get_dots do
-    get_input("input.txt") |> parse_input
+    get_input("input2.txt") |> parse_input
   end
 
   def boundary_movement(prev, next) do
@@ -301,52 +324,4 @@ defmodule Day10 do
     end
   end
 
-  def print(coordinates) do
-    min_x = find_min_x(coordinates)
-    min_y = find_min_y(coordinates)
-    normalized_coordinates = coordinates |> Enum.map(fn %{x: x, y: y} ->
-      %{x: x - min_x, y: y - min_y}
-    end)
-
-    IO.puts(inspect normalized_coordinates |> Enum.sort, charlists: false)
-
-    min_x = find_min_x(normalized_coordinates)
-    min_y = find_min_y(normalized_coordinates)
-    max_x = find_max_x(normalized_coordinates)
-    max_y = find_max_y(normalized_coordinates)
-    width = max_x - min_x
-    height = max_y - min_y
-
-    rows = normalized_coordinates |> Enum.reduce(%{}, fn %{x: x, y: y}, acc ->
-      Map.update(acc, y, [x], fn current_xs ->
-        [x] ++ current_xs
-      end)
-    end)
-
-    row_strings = 0..height |> Enum.map(fn row ->
-      current_row_xs = rows[row] |> Enum.uniq |> Enum.sort
-      row_string = 0..width |> Enum.to_list |> string_for_row(current_row_xs, [])
-    end)
-
-    File.write("output2.txt", row_strings |> Enum.join("\n"))
-  end
-
-  def print_second(dots, second) do
-    translate(dots, second) |> print
-  end
-
-  def string_for_row([], list_of_x = [], acc) do
-    acc |> Enum.reverse
-  end
-
-  def string_for_row([row_h | row_t], remainder = [h | t], acc) do
-    acc = case row_h == h do
-      true  -> string_for_row(row_t, t, ["#"] ++ acc)
-      false -> string_for_row(row_t, remainder, ["."] ++ acc)
-    end
-  end
-
-  def string_for_row([row_h | row_t], [], acc) do
-    string_for_row(row_t, [], ["."] ++ acc)
-  end
 end
