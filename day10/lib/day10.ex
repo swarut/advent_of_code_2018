@@ -61,37 +61,17 @@ defmodule Day10 do
   def parse_input(list) do
     list
     |> Enum.map(fn item ->
-      [x, y, vx, vy] = String.replace(item, ~r{\s}, "") |> String.split(["position=<", ",",  ">velocity=<", ",", ">"], trim: true)
-      %{x: String.to_integer(x), y: String.to_integer(y), vx: String.to_integer(vx), vy: String.to_integer(vy)}
+      [x, y, vx, vy] =
+        String.replace(item, ~r{\s}, "")
+        |> String.split(["position=<", ",", ">velocity=<", ",", ">"], trim: true)
+
+      %{
+        x: String.to_integer(x),
+        y: String.to_integer(y),
+        vx: String.to_integer(vx),
+        vy: String.to_integer(vy)
+      }
     end)
-  end
-
-  @doc """
-  Inject IDs to the dots so that we can refer to each dot later
-
-  ## Example
-      iex> Day10.inject_id([
-      ...> %{x: 10, y: 1, vx: 1, vy: 1},
-      ...> %{x: 9, y: 10, vx: 1, vy: 1},
-      ...> %{x: -1, y: 11, vx: 1, vy: 1},
-      ...> %{x: 14, y: -1, vx: 1, vy: 1}
-      ...> ])
-      [
-        %{x: 10, y: 1, vx: 1, vy: 1, id: 0},
-        %{x: 9, y: 10, vx: 1, vy: 1, id: 1},
-        %{x: -1, y: 11, vx: 1, vy: 1, id: 2},
-        %{x: 14, y: -1, vx: 1, vy: 1, id: 3}
-      ]
-  """
-  def inject_id(dots) do
-    # NOTE: Can be improved with MapSet, so that reverse at the end is not needed
-    result = dots |> Enum.reduce(%{counter: 0, result: []}, fn dot, acc = %{counter: counter, result: result} ->
-      acc
-      |> Map.put(:result, [Map.put(dot, :id, counter)] ++ result)
-      |> Map.put(:counter, counter + 1)
-    end)
-
-    result[:result] |> Enum.reverse
   end
 
   @doc """
@@ -206,8 +186,9 @@ defmodule Day10 do
       ]
   """
   def translate(dots, second) do
-    dots |> Enum.map( fn dot ->
-      %{x: dot.x + (second * dot.vx), y: dot.y + (second * dot.vy)}
+    dots
+    |> Enum.map(fn dot ->
+      %{x: dot.x + second * dot.vx, y: dot.y + second * dot.vy}
     end)
   end
 
@@ -251,34 +232,35 @@ defmodule Day10 do
       ...>])
       3
   """
-  def part1_solve(dots) do
-    dots |> iterate
+  def solve(dots) do
+    (dots |> iterate).answer
   end
 
   def iterate(dots) do
     iterate(dots, 0, [])
   end
 
-  def iterate(dots, second, acc = %{previous_boundary: previous_boundary, previous_second: previous_second}) do
+  def iterate(
+        dots,
+        second,
+        acc = %{previous_boundary: previous_boundary, previous_second: previous_second}
+      ) do
     translated_coordinates = translate(dots, second)
     current_boundary = calculate_current_boundary(translated_coordinates)
     IO.puts("SECOND: #{second}")
-    IO.puts("previous second: #{previous_second}")
     IO.puts("boundary movement: #{boundary_movement(previous_boundary, current_boundary)}")
-    IO.puts("======================================")
-    cond do
-      previous_boundary - current_boundary  > 0 ->
-        # Shrink
-        IO.puts("========== SHRINK ====================")
-        next_second = second + 1
 
-        new_acc = acc
-        |> Map.put(:previous_boundary, current_boundary)
-        |> Map.put(:previous_second, second)
+    cond do
+      previous_boundary - current_boundary > 0 ->
+        next_second = second + 1
+        new_acc =
+          acc
+          |> Map.put(:previous_boundary, current_boundary)
+          |> Map.put(:previous_second, second)
+
         iterate(dots, next_second, new_acc)
 
       previous_boundary - current_boundary < 0 ->
-        IO.puts("========== EXPAND ====================")
         %{answer: previous_second, second: second, previous_second: previous_second}
     end
   end
@@ -296,19 +278,20 @@ defmodule Day10 do
 
   def boundary_movement(prev, next) do
     cond do
-      (prev - next) < 0 -> "Expand"
-      (prev - next) > 0 -> "Shrink"
+      prev - next < 0 -> "Expand"
+      prev - next > 0 -> "Shrink"
     end
   end
 
   def print(coordinates) do
     min_x = find_min_x(coordinates)
     min_y = find_min_y(coordinates)
-    normalized_coordinates = coordinates |> Enum.map(fn %{x: x, y: y} ->
-      %{x: x - min_x, y: y - min_y}
-    end)
 
-    IO.puts(inspect normalized_coordinates |> Enum.sort, charlists: false)
+    normalized_coordinates =
+      coordinates
+      |> Enum.map(fn %{x: x, y: y} ->
+        %{x: x - min_x, y: y - min_y}
+      end)
 
     min_x = find_min_x(normalized_coordinates)
     min_y = find_min_y(normalized_coordinates)
@@ -317,33 +300,49 @@ defmodule Day10 do
     width = max_x - min_x
     height = max_y - min_y
 
-    rows = normalized_coordinates |> Enum.reduce(%{}, fn %{x: x, y: y}, acc ->
-      Map.update(acc, y, [x], fn current_xs ->
-        [x] ++ current_xs
+    rows =
+      normalized_coordinates
+      |> Enum.reduce(%{}, fn %{x: x, y: y}, acc ->
+        Map.update(acc, y, [x], fn current_xs ->
+          [x] ++ current_xs
+        end)
       end)
-    end)
 
-    row_strings = 0..height |> Enum.map(fn row ->
-      current_row_xs = rows[row] |> Enum.uniq |> Enum.sort
-      row_string = 0..width |> Enum.to_list |> string_for_row(current_row_xs, [])
-    end)
+    row_strings =
+      0..height
+      |> Enum.map(fn row ->
+        current_row_xs = rows[row] |> Enum.uniq() |> Enum.sort()
+        0..width |> Enum.to_list() |> string_for_row(current_row_xs)
+      end)
 
-    File.write("output2.txt", row_strings |> Enum.join("\n"))
+    File.write("output.txt", row_strings |> Enum.join("\n"))
   end
 
   def print_second(dots, second) do
     translate(dots, second) |> print
   end
 
+  @doc """
+  Create string for row. With speicified x, fill in with "#", else fill ".".
+
+  ## Example
+      iex> Day10.string_for_row(Enum.to_list(0..3), [1, 2], [])
+      [".", "#", "#", "."]
+  """
+  def string_for_row([], list_of_x) do
+    string_for_row([], list_of_x, [])
+  end
+
   def string_for_row([], list_of_x = [], acc) do
-    acc |> Enum.reverse
+    acc |> Enum.reverse()
   end
 
   def string_for_row([row_h | row_t], remainder = [h | t], acc) do
-    acc = case row_h == h do
-      true  -> string_for_row(row_t, t, ["#"] ++ acc)
-      false -> string_for_row(row_t, remainder, ["."] ++ acc)
-    end
+    acc =
+      case row_h == h do
+        true -> string_for_row(row_t, t, ["#"] ++ acc)
+        false -> string_for_row(row_t, remainder, ["."] ++ acc)
+      end
   end
 
   def string_for_row([row_h | row_t], [], acc) do
