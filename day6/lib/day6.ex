@@ -146,6 +146,39 @@ defmodule Day6 do
     end)
   end
 
+  @doc """
+  Create the map for quick finding of half-distance between each pair of coordinates
+
+  ## Example
+      iex>Day6.half_distance_lookup([{1,1}, {4, 4}, {2, 3}])
+      %{
+        {1, 1} => %{ {1, 1} => 0, {4, 4} => 6, {2, 3} => 3},
+        {4, 4} => %{ {1, 1} => 6, {4, 4} => 0, {2, 3} => 3},
+        {2, 3} => %{ {1, 1} => 3, {4, 4} => 3, {2, 3} => 0},
+      }
+  """
+  def half_distance_lookup(coordinates) do
+    coordinates
+    |> Enum.reduce(%{}, fn cod, acc ->
+      distance_to_each_cod = Enum.reduce(coordinates, %{}, fn dcod, dacc ->
+        dacc |> Map.put(dcod, distance(cod, dcod))
+      end)
+
+      Map.put(acc, cod, distance_to_each_cod)
+    end)
+  end
+
+  @doc """
+  Calculate manhattan distance between two coordinates
+
+  ## Example
+      iex> Day6.distance({1, 1}, {3, 3})
+      4
+  """
+  def distance({x1, y1}, {x2, y2}) do
+    abs(x1 - x2) + abs(y1 - y2)
+  end
+
   def solve do
     # - get edge
     # - for each
