@@ -147,6 +147,28 @@ defmodule Day6 do
   end
 
   @doc """
+  Generate new coordinates from the given coordinate and distance
+
+  ## Example
+      iex> Day6.expand({4, 4}, 1, :top_right)
+      [{4, 5}, {5, 4}]
+      iex> Day6.expand({4, 4}, 1, :bottom_right)
+      [{4, 3}, {5, 4}]
+      iex> Day6.expand({4, 4}, 1, :top_left)
+      [{3, 4}, {4, 5}]
+      iex> Day6.expand({4, 4}, 1, :bottom_left)
+      [{3, 4}, {4, 3}]
+      iex> Day6.expand({4, 4}, 1)
+      [{3, 4}, {4, 3}, {4, 5}, {5, 4}]
+  """
+  def expand({x, y}, distance, direction) do
+    spread_operants(distance, direction) |> Enum.map(fn {x1, y1} -> {x + x1, y + y1} end)
+  end
+  def expand({x, y}, distance) do
+    spread_operants(distance) |> Enum.map(fn {x1, y1} -> {x + x1, y + y1} end)
+  end
+
+  @doc """
   Create the map for quick finding of half-distance between each pair of coordinates
 
   ## Example
@@ -182,5 +204,16 @@ defmodule Day6 do
   def solve do
     # - get edge
     # - for each
+    coordinates = get_input("input2.txt")
+    look_up = half_distance_lookup(coordinates)
+    res = Enum.reduce([1], MapSet.new, fn distance, acc ->
+      Enum.reduce(coordinates, MapSet.new, fn cod, racc ->
+        new_cods = expand(cod, distance)
+        new_cods |> Enum.reduce(racc, fn c, rracc ->
+          MapSet.put(rracc, c)
+        end)
+        |> MapSet.put(cod)
+      end)
+    end)
   end
 end
