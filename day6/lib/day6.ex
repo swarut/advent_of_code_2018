@@ -96,15 +96,41 @@ defmodule Day6 do
       MapSet.new([{-2, 0}, {-1, 1}, {0, 2}])
       iex> Day6.spread_operants(2, :top_right)
       MapSet.new([{0, 2}, {1, 1}, {2, 0}])
+      iex> Day6.spread_operants(2, :bottom_left)
+      MapSet.new([{-2, 0}, {-1, -1}, {0, -2}])
+      iex> Day6.spread_operants(2, :bottom_right)
+      MapSet.new([{0, -2}, {1, -1}, {2, 0}])
+      iex> Day6.spread_operants(2, :top)
+      MapSet.new([{-2, 0}, {-1, 1}, {0, 2}, {1, 1}, {2, 0}])
+      iex> Day6.spread_operants(2, :bottom)
+      MapSet.new([{-2, 0}, {-1, -1}, {0, -2}, {1, -1}, {2, 0}])
+      iex> Day6.spread_operants(2)
+      MapSet.new([{-2, 0}, {-1, -1}, {0, 2}, {1, 1}, {2, 0}, {1, -1}, {0, -2}, {-1, -1}, {-1, 1}])
   """
   # iex> Day6.spread_operants(1)
   #     [ {-1, 0}, {0, 1}, {1, 0}, {0, -1}, {-1, -1}]
   def spread_operants(distance, :top_left) do
     coordinates_from_ranges(-distance..0, 0..distance)
   end
+  def spread_operants(distance, :bottom_left) do
+    coordinates_from_ranges(-distance..0, 0..-distance)
+  end
   def spread_operants(distance, :top_right) do
     coordinates_from_ranges(0..distance, distance..0)
   end
+  def spread_operants(distance, :bottom_right) do
+    coordinates_from_ranges(0..distance, -distance..0)
+  end
+  def spread_operants(distance, :top) do
+    MapSet.union(spread_operants(distance, :top_left), spread_operants(distance, :top_right))
+  end
+  def spread_operants(distance, :bottom) do
+    MapSet.union(spread_operants(distance, :bottom_left), spread_operants(distance, :bottom_right))
+  end
+  def spread_operants(distance) do
+    MapSet.union(spread_operants(distance, :top), spread_operants(distance, :bottom))
+  end
+
 
   @doc """
   Generate coordinates from the given ranges
