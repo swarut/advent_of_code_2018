@@ -201,16 +201,35 @@ defmodule Day6 do
     abs(x1 - x2) + abs(y1 - y2)
   end
 
+  def considerable_coordinates(coordinate, lookup, distance) do
+    lookup[coordinate]
+    |> Enum.reduce([], fn {key, dist}, acc ->
+      cond do
+        dist == distance -> [key] ++ acc
+        true -> acc
+      end
+    end)
+  end
+
+  def is_nearest?(cod, other_cods, distance) do
+    Enum.any?(other_cods, fn c -> distance(cod, c) < distance end)
+  end
+
   def solve do
-    # - get edge
-    # - for each
     coordinates = get_input("input2.txt")
     look_up = half_distance_lookup(coordinates)
     res = Enum.reduce([1], MapSet.new, fn distance, acc ->
+      # Find coordinates after expanding for distance
       Enum.reduce(coordinates, MapSet.new, fn cod, racc ->
-        new_cods = expand(cod, distance)
+        new_cods = expand(cod, distance) # Get new expanded cods
+        considerable_cods = considerable_coordinates(cod, lookup, distance)
         new_cods |> Enum.reduce(racc, fn c, rracc ->
-          MapSet.put(rracc, c)
+          # Pick new expanded cod only if it is the nearest to target cod
+          cond do
+            is_nearest?(cod, considerable_cods, distance) -> MapSet.put(rracc, c)
+            true -> rracc
+          end
+          #MapSet.put(rracc, c)
         end)
         |> MapSet.put(cod)
       end)
