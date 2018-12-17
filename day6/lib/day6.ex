@@ -202,6 +202,7 @@ defmodule Day6 do
   end
 
   def considerable_coordinates(coordinate, lookup, distance) do
+    IO.puts("Finding considerable coordinate from #{inspect coordinate}")
     lookup[coordinate]
     |> Enum.reduce([], fn {key, dist}, acc ->
       cond do
@@ -211,13 +212,20 @@ defmodule Day6 do
     end)
   end
 
+  @spec is_nearest?(any(), any(), any()) :: boolean()
+  def is_nearest?(_cod, [], _distance) do
+    IO.puts("No considerable coordinates")
+    true
+  end
   def is_nearest?(cod, other_cods, distance) do
+    IO.puts("CHECKING if #{inspect cod} is close to any of #{inspect other_cods} within #{distance}.")
     Enum.any?(other_cods, fn c -> distance(cod, c) < distance end)
   end
 
+
   def solve do
     coordinates = get_input("input2.txt")
-    look_up = half_distance_lookup(coordinates)
+    lookup = half_distance_lookup(coordinates)
     res = Enum.reduce([1], MapSet.new, fn distance, acc ->
       # Find coordinates after expanding for distance
       Enum.reduce(coordinates, MapSet.new, fn cod, racc ->
@@ -229,7 +237,7 @@ defmodule Day6 do
             is_nearest?(cod, considerable_cods, distance) -> MapSet.put(rracc, c)
             true -> rracc
           end
-          #MapSet.put(rracc, c)
+          # MapSet.put(rracc, c)
         end)
         |> MapSet.put(cod)
       end)
