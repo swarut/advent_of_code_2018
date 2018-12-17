@@ -226,9 +226,9 @@ defmodule Day6 do
   def solve do
     coordinates = get_input("input2.txt")
     lookup = half_distance_lookup(coordinates)
-    res = Enum.reduce([1], MapSet.new, fn distance, acc ->
+    res = Enum.reduce([1, 2], %{}, fn distance, acc ->
       # Find coordinates after expanding for distance
-      Enum.reduce(coordinates, MapSet.new, fn cod, racc ->
+      all_coordinates = Enum.reduce(coordinates, acc, fn cod, racc ->
         new_cods = expand(cod, distance) # Get new expanded cods
         considerable_cods = considerable_coordinates(cod, lookup, distance)
         new_cods |> Enum.reduce(racc, fn c, rracc ->
@@ -241,6 +241,8 @@ defmodule Day6 do
         end)
         |> MapSet.put(cod)
       end)
+
+      MapSet.union(acc, all_coordinates)
     end)
   end
 end
