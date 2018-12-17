@@ -219,14 +219,14 @@ defmodule Day6 do
   end
   def is_nearest?(cod, other_cods, distance) do
     IO.puts("CHECKING if #{inspect cod} is close to any of #{inspect other_cods} within #{distance}.")
-    Enum.any?(other_cods, fn c -> distance(cod, c) < distance end)
+    Enum.any?(other_cods, fn c -> distance(cod, c) <= distance end)
   end
 
 
   def solve do
     coordinates = get_input("input2.txt")
     lookup = half_distance_lookup(coordinates)
-    res = Enum.reduce([1, 2], %{}, fn distance, acc ->
+    res = Enum.reduce([1], %{}, fn distance, acc ->
       # Find coordinates after expanding for distance
       all_coordinates = Enum.reduce(coordinates, acc, fn cod, racc ->
         new_cods = expand(cod, distance) # Get new expanded cods
@@ -234,15 +234,82 @@ defmodule Day6 do
         new_cods |> Enum.reduce(racc, fn c, rracc ->
           # Pick new expanded cod only if it is the nearest to target cod
           cond do
-            is_nearest?(cod, considerable_cods, distance) -> MapSet.put(rracc, c)
-            true -> rracc
+            Map.has_key?(acc, c) -> rracc # Skip it coordinate was taken already
+            is_nearest?(cod, considerable_cods, distance) -> Map.put(rracc, c, cod) # Remember coordinate if it is the nearest
+            true -> Map.put(rracc, c, ".") # Mark coordinate as '.' if it share common distance
           end
-          # MapSet.put(rracc, c)
         end)
-        |> MapSet.put(cod)
+        |> Map.put(cod, cod)
       end)
 
-      MapSet.union(acc, all_coordinates)
+      # MapSet.union(acc, all_coordinates)
+    end)
+  end
+
+  def print(coordinates_hash) do
+    coordinates = Map.keys(coordinates_hash)
+    min_x = find_min_x(coordinates)
+    min_y = find_min_y(coordinates)
+
+    normalized_coordinates =
+      coordinates
+      |> Enum.map(fn {x, y} ->
+        {x - min_x, y - min_y}
+      end)
+    IO.puts(inspect normalized_coordinates)
+    min_x = find_min_x(normalized_coordinates)
+    min_y = find_min_y(normalized_coordinates)
+    max_x = find_max_x(normalized_coordinates)
+    max_y = find_max_y(normalized_coordinates)
+    width = max_x - min_x
+    height = max_y - min_y
+    rows =
+      normalized_coordinates
+      |> Enum.reduce(%{}, fn {x, y}, acc ->
+        Map.update(acc, y, [{x, y, coordinates_hash[{x, y}]}], fn current_xs ->
+          [{x, y, coordinates_hash[{x,y}]}] ++ current_xs
+        end)
+      end)
+    IO.puts(inspect normalized_coordinates)
+    row_strings =
+      0..height
+      |> Enum.map(fn row ->
+        current_row_xs = rows[row] |> Enum.uniq() |> Enum.sort()
+        0..width |> Enum.to_list() |> string_for_row(current_row_xs)
+      end)
+
+    File.write("output.txt", row_strings |> Enum.join("\n"))
+  end
+
+  def string_for_row(mapper, list_of_x) do
+    string_for_row(mapper, list_of_x, [])
+  end
+
+  def string_for_row([], list_of_x = [], acc) do
+    acc |> Enum.reverse()
+  end
+
+  def string_for_row([row_h | row_t], remainder = [{hx, _hy, hlabel} | t], acc) do
+    acc =
+      case row_h == hx do
+        true -> string_for_row(row_t, t, [hlabel] ++ acc)
+        false -> string_for_row(row_t, remainder, ["o"] ++ acc)
+      end
+  end
+
+  def string_for_row([row_h | row_t], [], acc) do
+    string_for_row(row_t, [], ["o"] ++ acc)
+  end
+
+  def labelize(coordinates_hash) do
+    original = get_input("input2.txt")
+    labs = 65..70
+    labels = Enum.zip(original, labs) |> Enum.reduce(%{}, fn {{x, y}, label}, acc ->
+      Map.put(acc, {x, y}, label)
+    end)
+
+    Enum.reduce(coordinates_hash, %{}, fn {key, val}, acc ->
+      Map.put(acc, key, [labels[val]])
     end)
   end
 end
