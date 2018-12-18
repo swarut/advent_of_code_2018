@@ -226,9 +226,9 @@ defmodule Day6 do
   def solve do
     coordinates = get_input("input2.txt")
     lookup = half_distance_lookup(coordinates)
-    res = Enum.reduce([1], %{}, fn distance, acc ->
+    Enum.reduce([1, 2], %{}, fn distance, acc ->
       # Find coordinates after expanding for distance
-      all_coordinates = Enum.reduce(coordinates, acc, fn cod, racc ->
+      Enum.reduce(coordinates, acc, fn cod, racc ->
         new_cods = expand(cod, distance) # Get new expanded cods
         considerable_cods = considerable_coordinates(cod, lookup, distance)
         new_cods |> Enum.reduce(racc, fn c, rracc ->
@@ -247,6 +247,7 @@ defmodule Day6 do
   end
 
   def print(coordinates_hash) do
+    IO.puts inspect coordinates_hash, limit: :infinity
     coordinates = Map.keys(coordinates_hash)
     min_x = find_min_x(coordinates)
     min_y = find_min_y(coordinates)
@@ -256,25 +257,31 @@ defmodule Day6 do
       |> Enum.map(fn {x, y} ->
         {x - min_x, y - min_y}
       end)
-    IO.puts(inspect normalized_coordinates)
     min_x = find_min_x(normalized_coordinates)
     min_y = find_min_y(normalized_coordinates)
     max_x = find_max_x(normalized_coordinates)
     max_y = find_max_y(normalized_coordinates)
     width = max_x - min_x
     height = max_y - min_y
+
+    coordinates_hash = labelize(coordinates_hash)
+
     rows =
       normalized_coordinates
       |> Enum.reduce(%{}, fn {x, y}, acc ->
+        case coordinates_hash[{x, y}] do
+          nil -> IO.puts("FOUND NIL AT #{x}, #{y}") # happen when
+        end
         Map.update(acc, y, [{x, y, coordinates_hash[{x, y}]}], fn current_xs ->
           [{x, y, coordinates_hash[{x,y}]}] ++ current_xs
         end)
       end)
-    IO.puts(inspect normalized_coordinates)
+    IO.puts("rows #{inspect rows}")
     row_strings =
       0..height
       |> Enum.map(fn row ->
         current_row_xs = rows[row] |> Enum.uniq() |> Enum.sort()
+        IO.puts("current row xs #{inspect current_row_xs}")
         0..width |> Enum.to_list() |> string_for_row(current_row_xs)
       end)
 
@@ -285,23 +292,22 @@ defmodule Day6 do
     string_for_row(mapper, list_of_x, [])
   end
 
-  def string_for_row([], list_of_x = [], acc) do
+  def string_for_row([], _list_of_x = [], acc) do
     acc |> Enum.reverse()
   end
 
   def string_for_row([row_h | row_t], remainder = [{hx, _hy, hlabel} | t], acc) do
-    acc =
-      case row_h == hx do
-        true -> string_for_row(row_t, t, [hlabel] ++ acc)
-        false -> string_for_row(row_t, remainder, ["o"] ++ acc)
-      end
+    case row_h == hx do
+      true -> string_for_row(row_t, t, [hlabel] ++ acc)
+      false -> string_for_row(row_t, remainder, ["o"] ++ acc)
+    end
   end
 
-  def string_for_row([row_h | row_t], [], acc) do
+  def string_for_row([_row_h | row_t], [], acc) do
     string_for_row(row_t, [], ["o"] ++ acc)
   end
 
-  def labelize(coordinates_hash) do
+  def labelize(coordinates_hash) do # Expect the coordinate to be unique, no duplication
     original = get_input("input2.txt")
     labs = 65..70
     labels = Enum.zip(original, labs) |> Enum.reduce(%{}, fn {{x, y}, label}, acc ->
