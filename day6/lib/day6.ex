@@ -183,7 +183,7 @@ defmodule Day6 do
     coordinates
     |> Enum.reduce(%{}, fn cod, acc ->
       distance_to_each_cod = Enum.reduce(coordinates, %{}, fn dcod, dacc ->
-        dacc |> Map.put(dcod, distance(cod, dcod))
+        dacc |> Map.put(dcod, div(distance(cod, dcod), 2))
       end)
 
       Map.put(acc, cod, distance_to_each_cod)
@@ -223,10 +223,10 @@ defmodule Day6 do
   end
 
 
-  def solve do
-    coordinates = get_input("input2.txt")
+  def solve(input) do
+    coordinates = get_input(input)
     lookup = half_distance_lookup(coordinates)
-    Enum.reduce([1, 2], %{}, fn distance, acc ->
+    Enum.reduce([1], %{}, fn distance, acc ->
       # Find coordinates after expanding for distance
       Enum.reduce(coordinates, acc, fn cod, racc ->
         new_cods = expand(cod, distance) # Get new expanded cods
@@ -247,7 +247,6 @@ defmodule Day6 do
   end
 
   def print(coordinates_hash) do
-    IO.puts inspect coordinates_hash, limit: :infinity
     coordinates = Map.keys(coordinates_hash)
     min_x = find_min_x(coordinates)
     min_y = find_min_y(coordinates)
@@ -269,14 +268,10 @@ defmodule Day6 do
     rows =
       normalized_coordinates
       |> Enum.reduce(%{}, fn {x, y}, acc ->
-        case coordinates_hash[{x, y}] do
-          nil -> IO.puts("FOUND NIL AT #{x}, #{y}") # happen when
-        end
         Map.update(acc, y, [{x, y, coordinates_hash[{x, y}]}], fn current_xs ->
           [{x, y, coordinates_hash[{x,y}]}] ++ current_xs
         end)
       end)
-    IO.puts("rows #{inspect rows}")
     row_strings =
       0..height
       |> Enum.map(fn row ->
@@ -308,8 +303,15 @@ defmodule Day6 do
   end
 
   def labelize(coordinates_hash) do # Expect the coordinate to be unique, no duplication
-    original = get_input("input2.txt")
-    labs = 65..70
+    # original = coordinates_hash |> Enum.map(fn {_, value} -> value end) |> Enum.uniq
+    original = coordinates_hash |> Enum.reduce([], fn {_, value}, acc ->
+      case value do
+        "." -> acc
+        _ -> [value] ++ acc
+      end
+    end) |> Enum.uniq
+
+    labs = 65..(65 + length(original))
     labels = Enum.zip(original, labs) |> Enum.reduce(%{}, fn {{x, y}, label}, acc ->
       Map.put(acc, {x, y}, label)
     end)
