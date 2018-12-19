@@ -202,11 +202,11 @@ defmodule Day6 do
   end
 
   def considerable_coordinates(coordinate, lookup, distance) do
-    IO.puts("Finding considerable coordinate from #{inspect coordinate}")
+    IO.puts("\t\tFinding considerable coordinate from #{inspect coordinate}")
     lookup[coordinate]
     |> Enum.reduce([], fn {key, dist}, acc ->
       cond do
-        dist == distance -> [key] ++ acc
+        (dist <= distance) && (dist != 0) -> [key] ++ acc
         true -> acc
       end
     end)
@@ -214,27 +214,27 @@ defmodule Day6 do
 
   @spec is_nearest?(any(), any(), any()) :: boolean()
   def is_nearest?(_cod, [], _distance) do
-    IO.puts("No considerable coordinates")
+    IO.puts("\t\tNo considerable coordinates")
     true
   end
   def has_nearer_distance?(cod, other_cods, distance) do
-    IO.puts("CHECKING if #{inspect cod} is close to any of #{inspect other_cods} within #{distance}.")
+    IO.puts("\t\tCHECKING if #{inspect cod} is close to any of #{inspect other_cods} within #{distance}.")
 
     Enum.any?(other_cods, fn c ->
-      IO.puts("----- distance between #{inspect cod} and #{inspect c} is #{distance(cod, c)}")
+      IO.puts("\t\t----- distance between #{inspect cod} and #{inspect c} is #{distance(cod, c)}")
       distance(cod, c) <= distance
     end)
   end
 
 
-  def solve(input) do
+  def solve(input, distance) do
     coordinates = get_input(input)
     lookup = half_distance_lookup(coordinates)
-    Enum.reduce([1], %{}, fn distance, acc ->
+    Enum.reduce(1..distance, %{}, fn distance, acc ->
       # Find coordinates after expanding for distance
       Enum.reduce(coordinates, acc, fn cod, racc ->
         new_cods = expand(cod, distance) # Get new expanded cods
-        IO.puts("new coordinates = #{inspect new_cods}")
+        IO.puts("PROCESSING DISTANCE = #{distance}, for cod = #{inspect cod} :::  new coordinates = #{inspect new_cods}")
         considerable_cods = considerable_coordinates(cod, lookup, distance)
         new_cods |> Enum.reduce(racc, fn c, rracc ->
           # Pick new expanded cod only if it is the nearest to target cod
@@ -256,33 +256,37 @@ defmodule Day6 do
     min_x = find_min_x(coordinates)
     min_y = find_min_y(coordinates)
 
-    normalized_coordinates =
-      coordinates
-      |> Enum.map(fn {x, y} ->
-        {x - min_x, y - min_y}
-      end)
-    min_x = find_min_x(normalized_coordinates)
-    min_y = find_min_y(normalized_coordinates)
-    max_x = find_max_x(normalized_coordinates)
-    max_y = find_max_y(normalized_coordinates)
-    width = max_x - min_x
-    height = max_y - min_y
+    # normalized_coordinates =
+    #   coordinates
+    #   |> Enum.map(fn {x, y} ->
+    #     {x - min_x, y - min_y}
+    #   end)
+    min_x = find_min_x(coordinates)
+    min_y = find_min_y(coordinates)
+    max_x = find_max_x(coordinates)
+    max_y = find_max_y(coordinates)
+    # width = max_x - min_x
+    # height = max_y - min_y
+    width = max_x
+    height = max_y
 
     coordinates_hash = labelize(coordinates_hash)
 
     rows =
-      normalized_coordinates
+      coordinates
       |> Enum.reduce(%{}, fn {x, y}, acc ->
         Map.update(acc, y, [{x, y, coordinates_hash[{x, y}]}], fn current_xs ->
           [{x, y, coordinates_hash[{x,y}]}] ++ current_xs
         end)
       end)
+    IO.puts("row --------- #{inspect rows}")
     row_strings =
-      0..height
+      min_y..height
       |> Enum.map(fn row ->
+        IO.puts("ROW NUMBER #{row}")
         current_row_xs = rows[row] |> Enum.uniq() |> Enum.sort()
         IO.puts("current row xs #{inspect current_row_xs}")
-        0..width |> Enum.to_list() |> string_for_row(current_row_xs)
+        min_x..width |> Enum.to_list() |> string_for_row(current_row_xs)
       end)
 
     File.write("output.txt", row_strings |> Enum.join("\n"))
@@ -316,13 +320,19 @@ defmodule Day6 do
       end
     end) |> Enum.uniq
 
+    # Create label mapper
     labs = 65..(65 + length(original))
     labels = Enum.zip(original, labs) |> Enum.reduce(%{}, fn {{x, y}, label}, acc ->
       Map.put(acc, {x, y}, label)
     end)
 
+
     Enum.reduce(coordinates_hash, %{}, fn {key, val}, acc ->
-      Map.put(acc, key, [labels[val]])
+      value = [labels[val]]
+      case value do
+        [nil] -> Map.put(acc, key, ".")
+        _ -> Map.put(acc, key, value)
+      end
     end)
   end
 end
