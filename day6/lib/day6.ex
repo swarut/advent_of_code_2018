@@ -217,9 +217,13 @@ defmodule Day6 do
     IO.puts("No considerable coordinates")
     true
   end
-  def is_nearest?(cod, other_cods, distance) do
+  def has_nearer_distance?(cod, other_cods, distance) do
     IO.puts("CHECKING if #{inspect cod} is close to any of #{inspect other_cods} within #{distance}.")
-    Enum.any?(other_cods, fn c -> distance(cod, c) <= distance end)
+
+    Enum.any?(other_cods, fn c ->
+      IO.puts("----- distance between #{inspect cod} and #{inspect c} is #{distance(cod, c)}")
+      distance(cod, c) <= distance
+    end)
   end
 
 
@@ -230,12 +234,13 @@ defmodule Day6 do
       # Find coordinates after expanding for distance
       Enum.reduce(coordinates, acc, fn cod, racc ->
         new_cods = expand(cod, distance) # Get new expanded cods
+        IO.puts("new coordinates = #{inspect new_cods}")
         considerable_cods = considerable_coordinates(cod, lookup, distance)
         new_cods |> Enum.reduce(racc, fn c, rracc ->
           # Pick new expanded cod only if it is the nearest to target cod
           cond do
             Map.has_key?(acc, c) -> rracc # Skip it coordinate was taken already
-            is_nearest?(cod, considerable_cods, distance) -> Map.put(rracc, c, cod) # Remember coordinate if it is the nearest
+            !has_nearer_distance?(c, considerable_cods, distance) -> Map.put(rracc, c, cod) # Remember coordinate if it is the nearest
             true -> Map.put(rracc, c, ".") # Mark coordinate as '.' if it share common distance
           end
         end)
