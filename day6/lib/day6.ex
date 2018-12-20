@@ -210,7 +210,7 @@ defmodule Day6 do
   end
 
   def considerable_coordinates(coordinate, lookup, distance) do
-    IO.puts("\t\tFinding considerable coordinate from #{inspect coordinate}")
+    # IO.puts("\t\tFinding considerable coordinate from #{inspect coordinate}")
     lookup[coordinate]
     |> Enum.reduce([], fn {key, dist}, acc ->
       cond do
@@ -222,14 +222,14 @@ defmodule Day6 do
 
   @spec is_nearest?(any(), any(), any()) :: boolean()
   def is_nearest?(_cod, [], _distance) do
-    IO.puts("\t\tNo considerable coordinates")
+    # IO.puts("\t\tNo considerable coordinates")
     true
   end
   def has_nearer_distance?(cod, other_cods, distance) do
-    IO.puts("\t\tCHECKING if #{inspect cod} is close to any of #{inspect other_cods} within #{distance}.")
+    # IO.puts("\t\tCHECKING if #{inspect cod} is close to any of #{inspect other_cods} within #{distance}.")
 
     Enum.any?(other_cods, fn c ->
-      IO.puts("\t\t----- distance between #{inspect cod} and #{inspect c} is #{distance(cod, c)}")
+      # IO.puts("\t\t----- distance between #{inspect cod} and #{inspect c} is #{distance(cod, c)}")
       distance(cod, c) <= distance
     end)
   end
@@ -244,7 +244,7 @@ defmodule Day6 do
       # Find coordinates after expanding for distance
       Enum.reduce(coordinates, acc, fn cod, racc ->
         new_cods = expand(cod, distance) # Get new expanded cods
-        IO.puts("PROCESSING DISTANCE = #{distance}, for cod = #{inspect cod} :::  new coordinates = #{inspect new_cods}")
+        # IO.puts("PROCESSING DISTANCE = #{distance}, for cod = #{inspect cod} :::  new coordinates = #{inspect new_cods}")
         considerable_cods = considerable_coordinates(cod, lookup, distance)
         new_cods |> Enum.reduce(racc, fn c, rracc ->
           # Pick new expanded cod only if it is the nearest to target cod
@@ -258,7 +258,28 @@ defmodule Day6 do
       end)
     end)
     |> crop(boundary)
+    |> remove_infinite_area(boundary)
+  end
 
+  def remove_infinite_area(coordinates_hash, boundary) do
+    labels_at_edges = coordinates_hash |> Enum.reduce([], fn {key, value}, acc ->
+      case is_on_edge?(boundary, key) do
+        true -> [value] ++ acc
+        false -> acc
+      end
+    end)
+
+    coordinates_hash |> Enum.reduce(%{}, fn {key, value}, acc ->
+      case Enum.member?(labels_at_edges, value) do
+        true -> acc
+        false -> Map.put(acc, key, value)
+      end
+    end)
+    |>
+    Enum.reduce(%{}, fn {_key, value}, acc ->
+      Map.update(acc, value, 1, fn current_value -> current_value + 1 end)
+    end)
+    |> Enum.max
   end
 
   def print(coordinates_hash) do
@@ -289,11 +310,11 @@ defmodule Day6 do
           [{x, y, coordinates_hash[{x,y}]}] ++ current_xs
         end)
       end)
-    IO.puts("row --------- #{inspect rows}")
+    # IO.puts("row --------- #{inspect rows}")
     row_strings =
       min_y..height
       |> Enum.map(fn row ->
-        IO.puts("ROW NUMBER #{row}")
+        # IO.puts("ROW NUMBER #{row}")
         current_row_xs = (rows[row] || []) |> Enum.uniq() |> Enum.sort()
         IO.puts("current row xs #{inspect current_row_xs}")
         min_x..width |> Enum.to_list() |> string_for_row(current_row_xs)
@@ -311,7 +332,7 @@ defmodule Day6 do
   end
 
   def string_for_row([row_h | row_t], remainder = [{hx, _hy, hlabel} | t], acc) do
-    IO.puts("compare row_h = #{row_h} and  hx = #{hx}")
+    # IO.puts("compare row_h = #{row_h} and  hx = #{hx}")
     case row_h == hx do
       true -> string_for_row(row_t, t, [hlabel] ++ acc)
       false -> string_for_row(row_t, remainder, ["."] ++ acc)
@@ -358,5 +379,9 @@ defmodule Day6 do
 
   def in_boundary?(%{min_x: min_x, max_x: max_x, min_y: min_y, max_y: max_y}, {x, y}) do
     (x >= min_x) && (x <= max_x) && (y >= min_y) && (y <= max_y)
+  end
+
+  def is_on_edge?(%{min_x: min_x, max_x: max_x, min_y: min_y, max_y: max_y}, {x, y}) do
+    (x == min_x) || (x == max_x) || (y == min_y) || (y == max_y)
   end
 end
