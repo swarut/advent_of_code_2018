@@ -284,7 +284,7 @@ defmodule Day6 do
       min_y..height
       |> Enum.map(fn row ->
         IO.puts("ROW NUMBER #{row}")
-        current_row_xs = rows[row] |> Enum.uniq() |> Enum.sort()
+        current_row_xs = (rows[row] || []) |> Enum.uniq() |> Enum.sort()
         IO.puts("current row xs #{inspect current_row_xs}")
         min_x..width |> Enum.to_list() |> string_for_row(current_row_xs)
       end)
