@@ -87,6 +87,14 @@ defmodule Day6 do
     min
   end
 
+  def get_boundary(coordinates) do
+    min_x = find_min_x(coordinates)
+    min_y = find_min_y(coordinates)
+    max_x = find_max_x(coordinates)
+    max_y = find_max_y(coordinates)
+    %{min_x: min_x, max_x: max_x, min_y: min_y, max_y: max_y}
+  end
+
   @doc """
   Return operant coordinates that can be used to find surrounding coordinates
   of a given coordinate
@@ -230,6 +238,8 @@ defmodule Day6 do
   def solve(input, distance) do
     coordinates = get_input(input)
     lookup = half_distance_lookup(coordinates)
+    boundary = get_boundary(coordinates)
+
     Enum.reduce(1..distance, %{}, fn distance, acc ->
       # Find coordinates after expanding for distance
       Enum.reduce(coordinates, acc, fn cod, racc ->
@@ -241,14 +251,14 @@ defmodule Day6 do
           cond do
             Map.has_key?(acc, c) -> rracc # Skip it coordinate was taken already
             !has_nearer_distance?(c, considerable_cods, distance) -> Map.put(rracc, c, cod) # Remember coordinate if it is the nearest
-            true -> Map.put(rracc, c, ".") # Mark coordinate as '.' if it share common distance
+            true -> Map.put(rracc, c, "@") # Mark coordinate as '.' if it share common distance
           end
         end)
         |> Map.put(cod, cod)
       end)
-
-      # MapSet.union(acc, all_coordinates)
     end)
+    |> crop(boundary)
+
   end
 
   def print(coordinates_hash) do
@@ -301,21 +311,22 @@ defmodule Day6 do
   end
 
   def string_for_row([row_h | row_t], remainder = [{hx, _hy, hlabel} | t], acc) do
+    IO.puts("compare row_h = #{row_h} and  hx = #{hx}")
     case row_h == hx do
       true -> string_for_row(row_t, t, [hlabel] ++ acc)
-      false -> string_for_row(row_t, remainder, ["o"] ++ acc)
+      false -> string_for_row(row_t, remainder, ["."] ++ acc)
     end
   end
 
   def string_for_row([_row_h | row_t], [], acc) do
-    string_for_row(row_t, [], ["o"] ++ acc)
+    string_for_row(row_t, [], ["."] ++ acc)
   end
 
   def labelize(coordinates_hash) do # Expect the coordinate to be unique, no duplication
     # original = coordinates_hash |> Enum.map(fn {_, value} -> value end) |> Enum.uniq
     original = coordinates_hash |> Enum.reduce([], fn {_, value}, acc ->
       case value do
-        "." -> acc
+        "@" -> acc
         _ -> [value] ++ acc
       end
     end) |> Enum.uniq
@@ -330,9 +341,22 @@ defmodule Day6 do
     Enum.reduce(coordinates_hash, %{}, fn {key, val}, acc ->
       value = [labels[val]]
       case value do
-        [nil] -> Map.put(acc, key, ".")
+        [nil] -> Map.put(acc, key, "@")
         _ -> Map.put(acc, key, value)
       end
     end)
+  end
+
+  def crop(coordinates_hash, boundary) do
+    Enum.reduce(coordinates_hash, %{}, fn {key, value}, acc ->
+      case in_boundary?(boundary, key) do
+        true -> Map.put(acc, key, value)
+        false -> acc
+      end
+    end)
+  end
+
+  def in_boundary?(%{min_x: min_x, max_x: max_x, min_y: min_y, max_y: max_y}, {x, y}) do
+    (x >= min_x) && (x <= max_x) && (y >= min_y) && (y <= max_y)
   end
 end
