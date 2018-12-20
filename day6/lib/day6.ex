@@ -240,7 +240,7 @@ defmodule Day6 do
     lookup = half_distance_lookup(coordinates)
     boundary = get_boundary(coordinates)
 
-    Enum.reduce(1..distance, %{}, fn distance, acc ->
+    cods = Enum.reduce(1..distance, %{}, fn distance, acc ->
       # Find coordinates after expanding for distance
       Enum.reduce(coordinates, acc, fn cod, racc ->
         new_cods = expand(cod, distance) # Get new expanded cods
@@ -258,7 +258,8 @@ defmodule Day6 do
       end)
     end)
     |> crop(boundary)
-    |> remove_infinite_area(boundary)
+    print(cods)
+    (labelize(cods)) |> remove_infinite_area(boundary)
   end
 
   def remove_infinite_area(coordinates_hash, boundary) do
@@ -279,7 +280,7 @@ defmodule Day6 do
     Enum.reduce(%{}, fn {_key, value}, acc ->
       Map.update(acc, value, 1, fn current_value -> current_value + 1 end)
     end)
-    |> Enum.max
+    |> Enum.max_by(fn {k, v} -> v end)
   end
 
   def print(coordinates_hash) do
@@ -316,7 +317,7 @@ defmodule Day6 do
       |> Enum.map(fn row ->
         # IO.puts("ROW NUMBER #{row}")
         current_row_xs = (rows[row] || []) |> Enum.uniq() |> Enum.sort()
-        IO.puts("current row xs #{inspect current_row_xs}")
+        # IO.puts("current row xs #{inspect current_row_xs}")
         min_x..width |> Enum.to_list() |> string_for_row(current_row_xs)
       end)
 
