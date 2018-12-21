@@ -158,21 +158,21 @@ defmodule Day6 do
   Generate new coordinates from the given coordinate and distance
 
   ## Example
-      iex> Day6.expand({4, 4}, 1, :top_right)
+      iex> Day6.coordinates_at_distance({4, 4}, 1, :top_right)
       [{4, 5}, {5, 4}]
-      iex> Day6.expand({4, 4}, 1, :bottom_right)
+      iex> Day6.coordinates_at_distance({4, 4}, 1, :bottom_right)
       [{4, 3}, {5, 4}]
-      iex> Day6.expand({4, 4}, 1, :top_left)
+      iex> Day6.coordinates_at_distance({4, 4}, 1, :top_left)
       [{3, 4}, {4, 5}]
-      iex> Day6.expand({4, 4}, 1, :bottom_left)
+      iex> Day6.coordinates_at_distance({4, 4}, 1, :bottom_left)
       [{3, 4}, {4, 3}]
-      iex> Day6.expand({4, 4}, 1)
+      iex> Day6.coordinates_at_distance({4, 4}, 1)
       [{3, 4}, {4, 3}, {4, 5}, {5, 4}]
   """
-  def expand({x, y}, distance, direction) do
+  def coordinates_at_distance({x, y}, distance, direction) do
     spread_operants(distance, direction) |> Enum.map(fn {x1, y1} -> {x + x1, y + y1} end)
   end
-  def expand({x, y}, distance) do
+  def coordinates_at_distance({x, y}, distance) do
     spread_operants(distance) |> Enum.map(fn {x1, y1} -> {x + x1, y + y1} end)
   end
 
@@ -221,28 +221,16 @@ defmodule Day6 do
   end
 
   def has_nearer_distance?(cod, other_cods, distance) do
-    # IO.puts("\t\tCHECKING if #{inspect cod} is close to any of #{inspect other_cods} within #{distance}.")
-
-    Enum.any?(other_cods, fn c ->
-      # IO.puts("\t\t----- distance between #{inspect cod} and #{inspect c} is #{distance(cod, c)}")
-      distance(cod, c) <= distance
-    end)
+    Enum.any?(other_cods, fn c -> distance(cod, c) <= distance end)
   end
 
-
-  def solve(input, distance) do
-    coordinates = get_input(input)
+  def expand_coordinates(coordinates, distance) do
     lookup = half_distance_lookup(coordinates)
-    boundary = get_boundary(coordinates)
-
-    cods = Enum.reduce(1..distance, %{}, fn distance, acc ->
-      # Find coordinates after expanding for distance
+    Enum.reduce(1..distance, %{}, fn distance, acc ->
       Enum.reduce(coordinates, acc, fn cod, racc ->
-        expaned_coordinates = expand(cod, distance) # Get new expanded cods
-        # IO.puts("PROCESSING DISTANCE = #{distance}, for cod = #{inspect cod} :::  new coordinates = #{inspect expaned_coordinates}")
+        expaned_coordinates = coordinates_at_distance(cod, distance) # Get new coordinates_at_distanceed cods
         considerable_cods = considerable_coordinates(cod, lookup, distance)
         expaned_coordinates |> Enum.reduce(racc, fn c, rracc ->
-          # Pick new expanded cod only if it is the nearest to target cod
           cond do
             Map.has_key?(acc, c) -> rracc # Skip it coordinate was taken already
             !has_nearer_distance?(c, considerable_cods, distance) -> Map.put(rracc, c, cod) # Remember coordinate if it is the nearest
@@ -252,9 +240,16 @@ defmodule Day6 do
         |> Map.put(cod, cod)
       end)
     end)
+  end
+
+  def solve(input, distance) do
+    coordinates = get_input(input)
+    boundary = get_boundary(coordinates)
+
+    expand_coordinates(coordinates, distance)
     |> crop(boundary)
-    print(cods, boundary)
-    (labelize(cods)) |> remove_infinite_area(boundary)
+    |> print(boundary)
+    |> remove_infinite_area(boundary)
   end
 
   def remove_infinite_area(coordinates_hash, boundary) do
@@ -290,7 +285,6 @@ defmodule Day6 do
           [{x, y, coordinates_hash[{x,y}]}] ++ current_xs
         end)
       end)
-    # IO.puts("row --------- #{inspect rows}")
     row_strings =
       boundary.min_y..boundary.max_y
       |> Enum.map(fn row ->
@@ -299,6 +293,7 @@ defmodule Day6 do
       end)
 
     File.write("output.txt", row_strings |> Enum.join("\n"))
+    coordinates_hash
   end
 
   def string_for_row(mapper, list_of_x) do
@@ -323,6 +318,7 @@ defmodule Day6 do
 
   def labelize(coordinates_hash) do # Expect the coordinate to be unique, no duplication
     # original = coordinates_hash |> Enum.map(fn {_, value} -> value end) |> Enum.uniq
+    IO.puts("coord hash = #{inspect coordinates_hash}")
     original = coordinates_hash |> Enum.reduce([], fn {_, value}, acc ->
       case value do
         "@" -> acc
