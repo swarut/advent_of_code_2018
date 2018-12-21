@@ -220,11 +220,6 @@ defmodule Day6 do
     end)
   end
 
-  @spec is_nearest?(any(), any(), any()) :: boolean()
-  def is_nearest?(_cod, [], _distance) do
-    # IO.puts("\t\tNo considerable coordinates")
-    true
-  end
   def has_nearer_distance?(cod, other_cods, distance) do
     # IO.puts("\t\tCHECKING if #{inspect cod} is close to any of #{inspect other_cods} within #{distance}.")
 
@@ -243,10 +238,10 @@ defmodule Day6 do
     cods = Enum.reduce(1..distance, %{}, fn distance, acc ->
       # Find coordinates after expanding for distance
       Enum.reduce(coordinates, acc, fn cod, racc ->
-        new_cods = expand(cod, distance) # Get new expanded cods
-        # IO.puts("PROCESSING DISTANCE = #{distance}, for cod = #{inspect cod} :::  new coordinates = #{inspect new_cods}")
+        expaned_coordinates = expand(cod, distance) # Get new expanded cods
+        # IO.puts("PROCESSING DISTANCE = #{distance}, for cod = #{inspect cod} :::  new coordinates = #{inspect expaned_coordinates}")
         considerable_cods = considerable_coordinates(cod, lookup, distance)
-        new_cods |> Enum.reduce(racc, fn c, rracc ->
+        expaned_coordinates |> Enum.reduce(racc, fn c, rracc ->
           # Pick new expanded cod only if it is the nearest to target cod
           cond do
             Map.has_key?(acc, c) -> rracc # Skip it coordinate was taken already
@@ -258,7 +253,7 @@ defmodule Day6 do
       end)
     end)
     |> crop(boundary)
-    print(cods)
+    print(cods, boundary)
     (labelize(cods)) |> remove_infinite_area(boundary)
   end
 
@@ -280,27 +275,11 @@ defmodule Day6 do
     Enum.reduce(%{}, fn {_key, value}, acc ->
       Map.update(acc, value, 1, fn current_value -> current_value + 1 end)
     end)
-    |> Enum.max_by(fn {k, v} -> v end)
+    |> Enum.max_by(fn {_k, v} -> v end)
   end
 
-  def print(coordinates_hash) do
+  def print(coordinates_hash, boundary) do
     coordinates = Map.keys(coordinates_hash)
-    min_x = find_min_x(coordinates)
-    min_y = find_min_y(coordinates)
-
-    # normalized_coordinates =
-    #   coordinates
-    #   |> Enum.map(fn {x, y} ->
-    #     {x - min_x, y - min_y}
-    #   end)
-    min_x = find_min_x(coordinates)
-    min_y = find_min_y(coordinates)
-    max_x = find_max_x(coordinates)
-    max_y = find_max_y(coordinates)
-    # width = max_x - min_x
-    # height = max_y - min_y
-    width = max_x
-    height = max_y
 
     coordinates_hash = labelize(coordinates_hash)
 
@@ -313,12 +292,10 @@ defmodule Day6 do
       end)
     # IO.puts("row --------- #{inspect rows}")
     row_strings =
-      min_y..height
+      boundary.min_y..boundary.max_y
       |> Enum.map(fn row ->
-        # IO.puts("ROW NUMBER #{row}")
         current_row_xs = (rows[row] || []) |> Enum.uniq() |> Enum.sort()
-        # IO.puts("current row xs #{inspect current_row_xs}")
-        min_x..width |> Enum.to_list() |> string_for_row(current_row_xs)
+        boundary.min_x..boundary.max_x |> Enum.to_list |> string_for_row(current_row_xs)
       end)
 
     File.write("output.txt", row_strings |> Enum.join("\n"))
@@ -369,6 +346,9 @@ defmodule Day6 do
     end)
   end
 
+  @doc """
+
+  """
   def crop(coordinates_hash, boundary) do
     Enum.reduce(coordinates_hash, %{}, fn {key, value}, acc ->
       case in_boundary?(boundary, key) do
@@ -378,10 +358,30 @@ defmodule Day6 do
     end)
   end
 
+  @doc """
+  Check wether the given coordinate is inside the boundary or not
+
+  ## Example
+      iex> Day6.in_boundary?(%{min_x: 1, max_x: 10, min_y: 1, max_y: 10}, {2, 2})
+      true
+      iex> Day6.in_boundary?(%{min_x: 1, max_x: 10, min_y: 1, max_y: 10}, {-2, -2})
+      false
+      iex> Day6.in_boundary?(%{min_x: 1, max_x: 10, min_y: 1, max_y: 10}, {1, 1})
+      true
+  """
   def in_boundary?(%{min_x: min_x, max_x: max_x, min_y: min_y, max_y: max_y}, {x, y}) do
     (x >= min_x) && (x <= max_x) && (y >= min_y) && (y <= max_y)
   end
 
+  @doc """
+  Check whether the given coordinate is on the edges on not
+
+  ## Example
+      iex> Day6.is_on_edge?(%{min_x: 1, max_x: 10, min_y: 1, max_y: 10}, {2, 2})
+      false
+      iex> Day6.is_on_edge?(%{min_x: 1, max_x: 10, min_y: 1, max_y: 10}, {1, 2})
+      true
+  """
   def is_on_edge?(%{min_x: min_x, max_x: max_x, min_y: min_y, max_y: max_y}, {x, y}) do
     (x == min_x) || (x == max_x) || (y == min_y) || (y == max_y)
   end
