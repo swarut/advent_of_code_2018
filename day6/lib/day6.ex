@@ -275,7 +275,6 @@ defmodule Day6 do
 
   def print(coordinates_hash, boundary) do
     coordinates = Map.keys(coordinates_hash)
-
     coordinates_hash = labelize(coordinates_hash)
 
     rows =
@@ -317,8 +316,6 @@ defmodule Day6 do
   end
 
   def labelize(coordinates_hash) do # Expect the coordinate to be unique, no duplication
-    # original = coordinates_hash |> Enum.map(fn {_, value} -> value end) |> Enum.uniq
-    IO.puts("coord hash = #{inspect coordinates_hash}")
     original = coordinates_hash |> Enum.reduce([], fn {_, value}, acc ->
       case value do
         "@" -> acc
@@ -343,7 +340,13 @@ defmodule Day6 do
   end
 
   @doc """
+  Remove the coordinate that are out of a given boundary
 
+  ## Example
+    iex> Day6.crop(%{{5, 5} => {4, 4}}, %{min_x: 1, max_x: 4, min_y: 1, max_y: 4})
+    %{}
+    iex> Day6.crop(%{{5, 5} => {4, 4}, {11, 11} => {9, 9}}, %{min_x: 1, max_x: 10, min_y: 1, max_y: 10})
+    %{{5, 5} => {4, 4}}
   """
   def crop(coordinates_hash, boundary) do
     Enum.reduce(coordinates_hash, %{}, fn {key, value}, acc ->
