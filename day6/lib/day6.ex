@@ -384,4 +384,25 @@ defmodule Day6 do
   def is_on_edge?(%{min_x: min_x, max_x: max_x, min_y: min_y, max_y: max_y}, {x, y}) do
     (x == min_x) || (x == max_x) || (y == min_y) || (y == max_y)
   end
+
+  def area_within_distance_sum(input, sum) do
+    coordinates = get_input(input)
+    %{min_x: min_x, max_x: max_x, min_y: min_y, max_y: max_y} = get_boundary(coordinates)
+    Enum.reduce(min_x..max_x, 0, fn x, acc ->
+      Enum.reduce(min_y..max_y, acc, fn y, racc ->
+        s = sum_distance(coordinates, {x, y})
+        IO.puts("Sum distance of  (#{x}, #{y}) = #{s} ")
+        cond do
+          sum_distance(coordinates, {x, y}) < sum -> racc + 1
+          true -> racc
+        end
+      end)
+    end)
+  end
+
+  def sum_distance(coordinates, target) do
+    coordinates |> Enum.reduce(0, fn c, acc ->
+      acc + distance(c, target)
+    end)
+  end
 end
