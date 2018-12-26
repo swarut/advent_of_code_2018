@@ -9,6 +9,7 @@ defmodule Day7 do
 
       {x, y}
     end)
+    |> Enum.sort
   end
 
   @doc """
@@ -43,12 +44,12 @@ defmodule Day7 do
   end
 
   def proceed([], cursor, acc) do
-    IO.puts(" PROCEED tuples = [], cursor = #{inspect cursor}, acc = #{inspect acc}")
+    IO.puts(" PROCEED tuples = [], cursor = #{inspect cursor}, acc = #{inspect acc, limit: :infinity}")
     finalize_output(acc)
   end
 
   def proceed(tuples, [head_of_cursor | rest_of_cursor] = cursor, acc) do
-    IO.puts(" PROCEED tuples = #{inspect tuples}, cursor = #{inspect cursor}, acc = #{inspect acc}")
+    IO.puts(" PROCEED tuples = #{inspect tuples}, cursor = #{inspect cursor}, acc = #{inspect acc, limit: :infinity}")
 
     next = tuples |> Enum.find(fn {a, b} -> a == head_of_cursor end)
     case next do
