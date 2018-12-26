@@ -29,16 +29,21 @@ defmodule Day7 do
      elements_at_second_position -- elements_at_first_position}
   end
 
-  # @doc """
-  # Process the given data
+  @doc """
+  Process the given data
 
-  # ## Example
-  #     iex> Day7.proceed([{"A", "B"}, {"A", "C"}, {"B", "D"}, {"C", "D"}])
-  #     "ABCD"
-  # """
-  # def proceed([], cursor, acc) do
+  ## Example
+      iex> Day7.proceed([{"A", "B"}, {"A", "C"}, {"B", "D"}, {"C", "D"}])
+      "ABCD"
+  """
+  def proceed(data) do
+    # figure out the fisrt element
+    c = first_element(data)
+    proceed(data, c, "")
+  end
+  def proceed([], cursor, acc) do
 
-  # end
+  end
 
   @doc """
   Finalize the output
