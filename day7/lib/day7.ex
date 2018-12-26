@@ -145,3 +145,142 @@ end
 # C A B E D E F E {"F", "E"}
 
 # no input
+
+
+t5 = [{"A", "B"}, {"B", "C"}, {"D", "B"}, {"B", "E"}, {"C", "Z"}, {"E", "Z"}]
+{"A", "B"}, {"B", "C"},
+{"D", "B"}, {"B", "E"},
+{"C", "Z"}, {"E", "Z"}
+
+
+ADBCEZ
+
+
+A - B --- C  --- Z
+   / \         /
+  /   \--- E -/
+D
+ADBCEZ
+
+
+{"A", "B"},  o
+{"B", "C"},  o
+{"B", "E"},
+{"C", "Z"},
+{"D", "B"},
+{"E", "Z"}
+
+
+B A  {A , B}  cursor [B, A]
+C B A {B, C}  cursor [C, B, A]
+Z C B A  -> Fail
+
+
+{"A", "B"}, o
+{"B", "C"}, o
+{"B", "E"},
+{"C", "Z"}, o
+{"D", "B"}, o
+{"E", "Z"}  o
+B A { A, B} cursor [B, A]
+            any end with B ? -> {"D", "B"}
+
+B D A {D, B}  cursor [B, D, A]
+            any end with B ? -> no
+            find next starting with B -> {"B", "C"}
+C B D A {"B", "C"}  cursour [C B D A]
+            any end with C ? -> no
+            find next starting with c -> {"C", "Z"}
+Z C B D A {"C", "Z"} cursor [Z C B D A]
+            any end with Z ? -> {"E", "Z"}
+E Z C B D A  {"E", "Z"} cursor [E Z C B D A]
+            any end with z ? -> no
+            find next starting with E -> no, cursor [Z C B D A]
+            find next starting with Z -> no, cursor [C B D A]
+            find next starting with C -> no, cursor [B D A]
+            find next starting with B -> {"B", "E"}
+B E Z C B D A
+
+B E Z C D A
+A D C Z E B
+
+------------
+
+A - B --- C
+   /
+  /
+D
+{"A", "B"},  o
+{"B", "C"},  o
+{"D", "B"},  o
+
+
+A    cursor [A]    acc = [A]
+      any end with A ? -> no
+      find next starting with A -> {A, B}
+      Add B at front
+
+B A  cursor [B, A]   acc = [B, A]
+      any end with B ? -> {D, B}
+      replace B with B, D
+
+B D A      cursor = [ B D A ], acc = [B D A]
+      any end with B? -> no
+      any start with B? -> {B, C}
+      Add C at front
+
+C B D A
+
+A D B C
+===============
+
+
+{"A", "B"} o
+{"B", "C"} o
+{"B", "E"} o
+{"C", "Z"} o
+{"D", "B"} o
+{"E", "Z"} o
+
+A    cursor [A]    acc = [A]
+        any end with A ? -> no
+        any start with A ? -> {A, B}
+        Add B at front
+
+B A  cursor [B A] acc = [B A]
+        any end with B ? -> { D, B}
+        replace B with B, D
+
+B D A  cursor [B D A] acc = [B D A]
+        any end with B ? -> no
+        any start with B ? -> {B, C}
+        add C at front
+
+C B D A cursor [C B D A ], acc = [C B D A]
+        any end with C ? -> no
+        any start with C ? -> {C, Z}
+        add Z at front
+
+Z C B D A cursor [Z C B D A], acc = [Z C B D A]
+        any end with Z? -> {E, Z}
+        replace Z with Z, E
+
+Z E C B D A cursor [Z E C B D A], acc = [Z E C B D A]
+        any end with Z ? -> no
+        any begin with Z ? -> no
+        move cursor,   cursor = [E C B D A]
+        any end with E ?　-> {"B", "E"}
+        replace E with E, B
+
+Z E B C B D A
+A D C B E Z
+
+
+Z E B C B D A   reverse
+A D B C B E Z   remove dup
+A D B C E Z
+
+A - B --- C  --- Z
+   / \         /
+  /   \--- E -/
+D
