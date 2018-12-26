@@ -30,33 +30,37 @@ defmodule Day7 do
   end
 
   @doc """
-  Process the given data
+  Process the given tuples
 
   ## Example
       iex> Day7.proceed([{"A", "B"}, {"A", "C"}, {"B", "D"}, {"C", "D"}])
       "ABCD"
   """
-  def proceed(data) do
+  def proceed(tuples) do
     # figure out the fisrt element
-    {a, b} = first_element(data)
-    proceed(data, b, [a])
+    {[first | _], _} = find_start_and_end_points(tuples)
+    proceed(tuples, [first], [first])
   end
 
   def proceed([], cursor, acc) do
+    IO.puts(" PROCEED tuples = [], cursor = #{inspect cursor}, acc = #{inspect acc}")
     finalize_output(acc)
   end
 
-  def proceed(data, cursor, acc) do
+  def proceed(tuples, cursor, acc) do
+    IO.puts(" PROCEED tuples = #{inspect tuples}, cursor = #{inspect cursor}, acc = #{inspect acc}")
     [head_of_cursor | rest_of_cursor] = cursor
-    next = data |> Enum.find(fn {a, b} -> a == head_of_cursor end)
+    next = tuples |> Enum.find(fn {a, b} -> a == head_of_cursor end)
     case next do
       nil ->
-        proceed(data), rest_of_cursor, acc)
+        IO.puts("---- item begin with #{head_of_cursor} is not found")
+        proceed(tuples, rest_of_cursor, acc)
       _ ->
+        IO.puts("---- found #{inspect next}")
         {x, y} = next
-        acc = [x] ++ acc
+        acc = [y] ++ acc
         cursor = acc
-        proceed(List.delete(data, {a, b}), cursor, acc)
+        proceed(List.delete(tuples, next), cursor, acc)
     end
   end
 
