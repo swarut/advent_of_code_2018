@@ -47,10 +47,11 @@ defmodule Day7 do
   end
 
   def proceed(data, cursor, acc) do
-    []
-    next = data |> Enum.find(fn {a, b} -> a == cursor end)
+    [head_of_cursor | rest_of_cursor] = cursor
+    next = data |> Enum.find(fn {a, b} -> a == head_of_cursor end)
     case next do
-      nil -> nil
+      nil ->
+        proceed(data), rest_of_cursor, acc)
       _ ->
         {x, y} = next
         acc = [x] ++ acc
