@@ -25,8 +25,8 @@ defmodule Day7 do
         {([a] ++ a_col) |> Enum.uniq(), ([b] ++ b_col) |> Enum.uniq()}
       end)
 
-    {elements_at_first_position -- elements_at_second_position,
-     elements_at_second_position -- elements_at_first_position}
+    {(elements_at_first_position -- elements_at_second_position) |> Enum.reverse,
+     (elements_at_second_position -- elements_at_first_position) |> Enum.reverse}
   end
 
   @doc """
@@ -62,6 +62,11 @@ defmodule Day7 do
         cursor = acc
         proceed(List.delete(tuples, next), cursor, acc)
     end
+  end
+
+  def proceed(tuples, [] = cursor, acc) do
+    {[first | _], _} = find_start_and_end_points(tuples)
+    proceed(tuples, [first], [first] ++ acc)
   end
 
   @doc """
