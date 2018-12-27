@@ -36,6 +36,16 @@ defmodule Day7 do
   ## Example
       iex> Day7.proceed([{"A", "B"}, {"A", "C"}, {"B", "D"}, {"C", "D"}])
       "ABCD"
+      iex> Day7.proceed([{"A", "B"}, {"B", "C"}, {"D", "B"}])
+      "ADBC"
+      iex> Day7.proceed([{"M", "D"}, {"X", "Y"}, {"Y", "D"}])
+      "MXYD"
+      iex> Day7.proceed([{"A", "B"},{"B", "C"},{"B", "E"},{"C", "Z"},{"D", "B"},{"E", "Z"}])
+      "ADBCEZ"
+      iex> Day7.proceed([{"A", "B"},{"A", "C"},{"A", "D"},{"B", "E"},{"B", "X"},{"C", "E"},{"D", "E"},{"E", "Z"},{"X", "Z"}])
+      "ABCDEXZ"
+      iex> Day7.proceed([{"A", "B"},{"A", "C"},{"A", "X"},{"B", "D"},{"B", "E"},{"C", "E"},{"D", "Z"},{"E", "Z"},{"X", "E"}])
+      "ABCDXEZ"
   """
   def proceed(tuples) do
     # figure out the fisrt element
@@ -51,17 +61,30 @@ defmodule Day7 do
   def proceed(tuples, [head_of_cursor | rest_of_cursor] = cursor, acc) do
     IO.puts(" PROCEED tuples = #{inspect tuples}, cursor = #{inspect cursor}, acc = #{inspect acc, limit: :infinity}")
 
-    next = tuples |> Enum.find(fn {a, b} -> a == head_of_cursor end)
-    case next do
+    tuple_ended_with_head_of_cursor = tuples |> Enum.find(fn {a, b} -> b == head_of_cursor end)
+    case tuple_ended_with_head_of_cursor do
       nil ->
-        IO.puts("---- item begin with #{head_of_cursor} is not found")
-        proceed(tuples, rest_of_cursor, acc)
+        IO.puts("---- item end with #{head_of_cursor} is not found")
+        tuple_starting_with_head_of_cursor = tuples |> Enum.find(fn {a, b} -> a == head_of_cursor end)
+        case tuple_starting_with_head_of_cursor do
+          nil ->
+            IO.puts("---- item begin with #{head_of_cursor} is not found")
+            proceed(tuples, rest_of_cursor, acc)
+          _ ->
+            IO.puts("---- found item begin with #{head_of_cursor} = #{inspect tuple_starting_with_head_of_cursor}")
+            {x, y} = tuple_starting_with_head_of_cursor
+            acc = [y] ++ acc
+            cursor = acc
+            proceed(List.delete(tuples, tuple_starting_with_head_of_cursor), cursor, acc)
+        end
       _ ->
-        IO.puts("---- found #{inspect next}")
-        {x, y} = next
-        acc = [y] ++ acc
+        IO.puts("---- found item end with #{head_of_cursor} = #{inspect tuple_ended_with_head_of_cursor}")
+
+        replacement_index = Enum.find_index(acc, fn x -> x == head_of_cursor end)
+        {x, y} = tuple_ended_with_head_of_cursor
+        acc = acc |> List.replace_at(replacement_index, [y, x]) |> List.flatten
         cursor = acc
-        proceed(List.delete(tuples, next), cursor, acc)
+        proceed(List.delete(tuples, tuple_ended_with_head_of_cursor), cursor, acc)
     end
   end
 
@@ -70,22 +93,16 @@ defmodule Day7 do
     proceed(tuples, [first], [first] ++ acc)
   end
 
-  @doc """
-  Finalize the output
-
-  ## Example
-      iex> Day7.finalize_output(["E", "F", "E", "D", "E", "B", "A", "C"])
-      "CABDFE"
-  """
   def finalize_output(char_list) do
     (char_list
-     |> Enum.reduce(%{result: "", lookup: MapSet.new()}, fn c, acc ->
+      |> Enum.reverse
+      |> Enum.reduce(%{result: "", lookup: MapSet.new()}, fn c, acc ->
        case MapSet.member?(acc.lookup, c) do
          true ->
            acc
 
          false ->
-           Map.put(acc, :result, c <> acc.result) |> Map.put(:lookup, MapSet.put(acc.lookup, c))
+           Map.put(acc, :result, acc.result <> c) |> Map.put(:lookup, MapSet.put(acc.lookup, c))
        end
      end)).result
   end

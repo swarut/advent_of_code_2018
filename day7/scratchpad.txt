@@ -122,7 +122,6 @@ D
 {"B", "C"},  o
 {"D", "B"},  o
 
-
 A    cursor [A]    acc = [A]
       any end with A ? -> no
       find next starting with A -> {A, B}
@@ -192,4 +191,279 @@ A - B --- C  --- Z
    / \         /
   /   \--- E -/
 D
-`
+
+
+----------------
+
+[{"A", "B"}, {"B", "Z"}, {"X", "Y"}, {"Y", "D"}, {"M", "D"}]
+
+X - Y - D
+    M /
+
+
+    [{"X", "Y"}, {"Y", "D"}, {"M", "D"}]
+
+X
+
+X  cursor [x], acc [x]
+        any end with x ? -> no
+        any start with x ? -> {X, Y}
+
+Y X  cursor [Y X], acc [Y X]
+        any end with Y ? -> no
+        any start with Y? -> {Y, D}
+
+D Y X   cursor [D Y X], acc [D Y X]
+        any end with D ? -> {M, D}
+        replace D with M, D
+
+M D Y X
+
+X Y M D
+
+
+
+
+[{"A", "B"},{"B", "C"},{"B", "E"},{"C", "Z"},{"D", "B"},{"E", "Z"}]
+
+
+
+
+--------------
+  A-J
+ / / \
+B/ ---K
+
+
+{"A", "J"}, o
+{"A", "K"}, o
+{"B", "A"}, o
+{"B", "J"}, o
+{"B", "K"} o
+BAJK
+
+B cursor [B] , acc [B]
+        any start with B ? -> {B, A}
+
+A B  cursor [A B], acc [A B]
+        any end with A ? ->  no
+        any start with A? -> {"A", "J"}
+
+J A B  cursor [J A B], acc [J A B]
+        any end with B ? -> no
+        any start with B? -> {"B", "J"}
+
+J J A B  cursor [J J A B], acc [J J A B]
+        any end with J ? -> no
+        any start with J ? -> no
+        cursor = [J A B]
+        any end with J ? -> no
+        any start with J ? -> no
+        cursor = [A B]
+        any end with A ? -> no
+        any start with A ? -> {"A", "K"}
+
+K J J A B   cursor [K J J A B] , acc [K J J A B]
+        any end with k ? -> {"B", "K"}
+
+K B J J A B
+
+B A J J B K
+B A J K
+
+
+==============
+
+      B
+  /        \
+A ----C            E
+  \         /   / / \
+      D       / /    \
+            /  /      \
+X ----Y   /  /         P
+           /          /
+M --- N  / --------O /
+
+{"A", "B"}, {"A", "C"}, {"A", "D"}, {"C", "E"}, {"E", "P"}, {"B", "E"}, {"D", "E"}
+{"X", "Y"}, {"Y", "E"},
+{"M", "N"}, {"N", "E"}, {"N", "O"}, {"O", "P"}
+
+
+{"A", "B"}, o
+{"A", "C"}, o
+{"A", "D"}, o
+{"B", "E"}, o
+{"C", "E"}, o
+{"D", "E"}  o
+{"E", "P"}, o
+{"M", "N"}, o
+{"N", "E"}, o
+{"N", "O"}, o
+{"O", "P"}, o
+{"X", "Y"}, o
+{"Y", "E"}  o
+
+A B C D M N X Y E O P
+
+A   cursor [A]   acc [A]
+        any end with A? -> no
+        any start with A? -> {"A", "B"}
+
+B A   cursor [B A], acc [B A]
+        any end with B? -> no
+        any start with B ? -> {"B", "E"}
+
+E B A   cursor [E B A], acc [E B A]
+        any end with E ? ->  {"C", "E"}
+
+E C B A cursor [C E B A], acc [C E B A]
+        any end with E? ->  {"D", "E"}
+
+E D C B A cursor [E D C B A], acc [E D C B A]
+        any end with E? -> {"N", "E"}
+
+E N D C B A   cursor [E N D C B A], acc [E N D C B A]  -----N??
+        any end with E? -> {"Y", "E"}
+
+E Y N D C B A   cursor [E Y N D C B A], acc [E Y N D C B A]
+        any end with E? -> no
+        any start with E? -> {"E", "P"}
+
+P E Y N D C B A  cursor [P E Y N D C B A], acc [P E Y N D C B A]
+        any end with P ?-> {"O", "P"}
+
+P O E Y N D C B A cursor [P O E Y N D C B A], acc [P O E Y N D C B A]
+        any end with P ? -> no
+        any start with P? -> no
+
+        cursor [O E Y N D C B A], acc [P O E Y N D C B A]
+        any end with O ? ->{"N", "O"}
+
+P O N E Y N D C B A  cursor[P O N E Y N D C B A]  acc [P O N E Y N D C B A]
+
+        cursor [O N E Y N D C B A]
+        any end with O ? -> no
+        cursor [N E Y N D C B A]
+        any end with N ? -> no
+        cursor [E Y N D C B A]
+        any end with E ? -> no
+        cursor [Y N D C B A]
+        any end with Y ? -> {"X", "Y"}
+
+P O N E Y X N D C B A  cursor [P O N E Y X N D C B A] acc [P O N E Y X N D C B A]
+        cursor [O N E Y X N D C B A]
+        any end with O ? -> no
+        cursor [N E Y X N D C B A]
+        any end with N ? -> no
+        cursor [E Y X N D C B A]
+        any end with E ? -> no
+        cursor [Y X N D C B A]
+        any end with Y ? -> no
+        cursor [X N D C B A]
+        any end with X ? -> no
+        cursor [N D C B A]
+        any end with N ? -> no
+        cursor [D C B A]
+        any end with D ? -> {"A", "D"}
+
+P O N E Y X N D A C B A  cursor [P O N E Y X N D A C B A], acc [P O N E Y X N D A C B A]
+        cursor [O N E Y X N D A C B A]
+        any end with O ? -> no
+        cursor [N E Y X N D A C B A]
+        any end with N ? -> no
+        cursor [E Y X N D A C B A]
+        any end with E ? -> no
+        cursor [Y X N D A C B A]
+        any end with Y ? -> no
+        cursor [X N D A C B A]
+        any end with X ? -> no
+        cursor [N D A C B A]
+        any end with N ? -> no
+        cursor [D A C B A]
+        any end with D ? -> no
+        cursor [A C B A]
+        any end with A ? -> no
+        cursor [C B A]
+        any end with C ? -> {"A", "C"}
+
+P O N E Y X N D A C A B A
+
+A B C D N X Y E O P
+
+
+====================
+
+        B  --   X
+   /        \      \
+A  --   C  --   E  -- Z
+    \      /
+        D
+
+{"A", "B"},
+{"A", "C"},
+{"A", "D"},
+{"B", "E"},
+{"B", "X"},
+{"C", "E"},
+{"D", "E"},
+{"E", "Z"},
+{"X", "Z"}
+ABCDEXZ
+
+AB
+
+ABE
+
+AB
+
+A => [B C D]
+B => [E X]
+C => [E]
+D => [E]
+E => [Z]
+X => [Z]
+Z => []
+
+A     -> [B C D]
+AB    -> [C D E X]
+ABC   -> [D E X]
+ABCD  -> [E X]
+ABCDE -> [X Z]
+ABCDEX -> [Z]
+ABCDEXZ
+
+
+======================
+        B  --   D
+    /        \      \
+A  --   C  --   E  -- Z
+    \      /
+        X
+ABCDXEZ
+{"A", "B"},
+{"A", "C"},
+{"A", "X"},
+{"B", "D"},
+{"B", "E"},
+{"C", "E"},
+{"D", "Z"},
+{"E", "Z"},
+{"X", "E"},
+
+outgoing                incoming
+A => [B C X]            []
+B => [D E]              [A]
+C => [E]                [A]
+D => [Z]                [B]
+E => [Z]                [B C X]
+X => [E]                [A]
+Z => []                 [D E]
+
+A -> [B C X]     Bs incoming is read? YES
+AB -> [C D E X]  Cs incoming is read? YES
+ABC -> [D E X]   Ds incoming is read? YES
+ABCD -> [E X]    Es incoming is read? NO, X left
+                 Xs incoming is read? YES
+ABCDX -> [E]     Es incoming is read? yes
+ABCDXE -> [Z]    Zs incoming is read? yes
+ABCDXEZ
