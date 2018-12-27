@@ -467,3 +467,6 @@ ABCD -> [E X]    Es incoming is read? NO, X left
 ABCDX -> [E]     Es incoming is read? yes
 ABCDXE -> [Z]    Zs incoming is read? yes
 ABCDXEZ
+
+
+%{outgoings: %{}, incomings: %{}, read: []}
