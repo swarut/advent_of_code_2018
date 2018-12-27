@@ -469,4 +469,25 @@ ABCDXE -> [Z]    Zs incoming is read? yes
 ABCDXEZ
 
 
-%{outgoings: %{}, incomings: %{}, read: []}
+%{outgoings: %{}, incomings: %{}}
+==============
+
+
+A - B --- C
+   /
+  /
+D
+{"A", "B"}
+{"B", "C"}
+{"D", "B"}
+
+incoming                outgoing
+A => []                 A => [B]
+B => [B D]              B => [C]
+C => [B]                C => []
+D => []                 D => [B]
+
+A -> [B]    Bs incoming is read? NO, D left
+AD -> [B]   Bs incoming is read? YES
+ADB -> [C]  Cs incoming is read? YES
+ADBC

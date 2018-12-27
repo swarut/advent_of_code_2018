@@ -30,28 +30,44 @@ defmodule Day7 do
      (elements_at_second_position -- elements_at_first_position) |> Enum.reverse}
   end
 
-  # @doc """
-  # Process the given tuples
+  @doc """
+  Process the given tuples
 
-  # ## Example
-  #     iex> Day7.proceed([{"A", "B"}, {"A", "C"}, {"B", "D"}, {"C", "D"}])
-  #     "ABCD"
-  #     iex> Day7.proceed([{"A", "B"}, {"B", "C"}, {"D", "B"}])
-  #     "ADBC"
-  #     iex> Day7.proceed([{"M", "D"}, {"X", "Y"}, {"Y", "D"}])
-  #     "MXYD"
-  #     iex> Day7.proceed([{"A", "B"},{"B", "C"},{"B", "E"},{"C", "Z"},{"D", "B"},{"E", "Z"}])
-  #     "ADBCEZ"
-  #     iex> Day7.proceed([{"A", "B"},{"A", "C"},{"A", "D"},{"B", "E"},{"B", "X"},{"C", "E"},{"D", "E"},{"E", "Z"},{"X", "Z"}])
-  #     "ABCDEXZ"
-  #     iex> Day7.proceed([{"A", "B"},{"A", "C"},{"A", "X"},{"B", "D"},{"B", "E"},{"C", "E"},{"D", "Z"},{"E", "Z"},{"X", "E"}])
-  #     "ABCDXEZ"
-  # """
-  # def proceed(tuples) do
-  #   # figure out the fisrt element
-  #   {[first | _], _} = find_start_and_end_points(tuples)
-  #   proceed(tuples, [first], [first])
-  # end
+  ## Example
+      iex> Day7.proceed([{"A", "B"}, {"A", "C"}, {"B", "D"}, {"C", "D"}])
+      "ABCD"
+      iex> Day7.proceed([{"A", "B"}, {"B", "C"}, {"D", "B"}])
+      "ADBC"
+      iex> Day7.proceed([{"M", "D"}, {"X", "Y"}, {"Y", "D"}])
+      "MXYD"
+      iex> Day7.proceed([{"A", "B"},{"B", "C"},{"B", "E"},{"C", "Z"},{"D", "B"},{"E", "Z"}])
+      "ADBCEZ"
+      iex> Day7.proceed([{"A", "B"},{"A", "C"},{"A", "D"},{"B", "E"},{"B", "X"},{"C", "E"},{"D", "E"},{"E", "Z"},{"X", "Z"}])
+      "ABCDEXZ"
+      iex> Day7.proceed([{"A", "B"},{"A", "C"},{"A", "X"},{"B", "D"},{"B", "E"},{"C", "E"},{"D", "Z"},{"E", "Z"},{"X", "E"}])
+      "ABCDXEZ"
+  """
+  def proceed(tuples) do
+    # figure out the fisrt element
+    {[first | _], _} = find_start_and_end_points(tuples)
+    proceed(%{incoming_lookup: incoming_lookup(tuples), outgoing_lookup: outgoing_lookup(tuples), first: first}, [first])
+  end
+
+  def proceed(carry = %{incoming_lookup: incoming_lookup, outgoing_lookup: outgoing_lookup, first: first}, acc) do
+    choices = outgoing_lookup[first] |> Enum.sort
+    acc = [first] ++ acc
+
+    carry = carry
+    |> Map.put(outgoing_lookup: outgoing_lookup |> Map.delete(first))
+    |> Map.put(choices: choices)
+
+    proceed(carry, acc)
+  end
+
+  def proceed(%{incoming_lookup: incoming_lookup, outgoing_lookup: outgoing_lookup, choices: choices}, acc) do
+    [c | _] = choices
+
+  end
 
   @doc """
   Generate incoming lookup
