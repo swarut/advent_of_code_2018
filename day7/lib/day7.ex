@@ -50,9 +50,7 @@ defmodule Day7 do
   """
   def proceed(tuples) do
     IO.puts("INPUT = #{inspect tuples}")
-    # {[first | _], _} = find_start_and_end_points(tuples)
     {first, _} = find_start_and_end_points(tuples)
-    # proceed(%{incoming_lookup: incoming_lookup(tuples), outgoing_lookup: outgoing_lookup(tuples), first: first}, [])
     proceed(%{incoming_lookup: incoming_lookup(tuples), outgoing_lookup: outgoing_lookup(tuples), choices: first}, [])
   end
 
@@ -66,31 +64,6 @@ defmodule Day7 do
     acc |> Enum.reverse |> Enum.join("")
   end
 
-  # def proceed(carry = %{incoming_lookup: incoming_lookup, outgoing_lookup: outgoing_lookup, first: first}, acc) do
-  #   IO.puts "1:::::::"
-  #   IO.puts "       #{ m("Carry")}"
-  #   IO.puts "       #{ m("incoming lookup:")} #{inspect incoming_lookup}"
-  #   IO.puts "       #{ m("outgoing lookup:")} #{inspect outgoing_lookup}"
-  #   IO.puts "       #{ m("first:")} #{inspect first}"
-  #   IO.puts "       #{ m("acc:")} #{inspect acc}"
-  #   choices = outgoing_lookup[first] |> Enum.sort
-  #   acc = [first] ++ acc
-
-  #   carry = carry
-  #   |> Map.put(:outgoing_lookup, outgoing_lookup |> Map.delete(first))
-  #   |> Map.put(:choices, choices)
-  #   |> Map.delete(:first)
-
-  #   IO.puts "                     "
-  #   IO.puts "       #{ m("Carry")}"
-  #   IO.puts "       #{ m("incoming lookup:")} #{inspect incoming_lookup}"
-  #   IO.puts "       #{ m("outgoing lookup:")} #{inspect outgoing_lookup}"
-  #   IO.puts "       #{ m("first:")} #{inspect first}"
-  #   IO.puts "       #{ m("acc:")} #{inspect acc}"
-
-  #   proceed(carry, acc)
-  # end
-
   def proceed(carry = %{incoming_lookup: incoming_lookup, outgoing_lookup: outgoing_lookup, choices: choices}, acc) do
     IO.puts "2:::::::"
     IO.puts "       #{ g("incoming lookup:")} #{inspect incoming_lookup}"
@@ -99,7 +72,7 @@ defmodule Day7 do
     IO.puts "       #{ g("acc:")} #{inspect acc}"
     [next_move | rest_of_choices] = choices
 
-    incoming_links_to_next_move = incoming_lookup[next_move]
+    incoming_links_to_next_move = incoming_lookup[next_move] || []
     IO.puts "       next move: #{inspect next_move}"
     IO.puts "       incoming_links #{next_move}: #{inspect incoming_links_to_next_move}"
     all_incoming_links_to_next_move_proceeded = Enum.all?(incoming_links_to_next_move, fn x -> Enum.member?(acc, x) end)
@@ -124,9 +97,7 @@ defmodule Day7 do
       false ->
         IO.puts "                     "
         IO.puts "       #{r("can not")} proceed next move"
-        next_move = incoming_links_to_next_move |> Enum.find( fn x ->
-          !Enum.member?(acc, x)
-        end)
+        [next_move | _] = rest_of_choices
         IO.puts "       #{ g("new next move:")} #{inspect next_move}"
         outgoings = outgoing_lookup[next_move] || []
         unprocessed_outgoings = outgoings |> Enum.filter(fn x -> !Enum.member?(acc, x) end)

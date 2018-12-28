@@ -491,3 +491,14 @@ A -> [B]    Bs incoming is read? NO, D left
 AD -> [B]   Bs incoming is read? YES
 ADB -> [C]  Cs incoming is read? YES
 ADBC
+
+
+
+
+
+{"A", "B"}
+{"F", "M"}
+{"E", "M"}
+{"M", "B"}
+{"N", "B"}
+{"B", "Z"````}
