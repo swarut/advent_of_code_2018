@@ -48,25 +48,52 @@ defmodule Day7 do
       "ABCDXEZ"
   """
   def proceed(tuples) do
-    # figure out the fisrt element
     {[first | _], _} = find_start_and_end_points(tuples)
-    proceed(%{incoming_lookup: incoming_lookup(tuples), outgoing_lookup: outgoing_lookup(tuples), first: first}, [first])
+    proceed(%{incoming_lookup: incoming_lookup(tuples), outgoing_lookup: outgoing_lookup(tuples), first: first}, [])
   end
 
   def proceed(carry = %{incoming_lookup: incoming_lookup, outgoing_lookup: outgoing_lookup, first: first}, acc) do
+    IO.puts "1:: Carry = #{inspect carry}, acc = #{inspect acc}"
     choices = outgoing_lookup[first] |> Enum.sort
     acc = [first] ++ acc
 
     carry = carry
-    |> Map.put(outgoing_lookup: outgoing_lookup |> Map.delete(first))
-    |> Map.put(choices: choices)
+    |> Map.put(:outgoing_lookup, outgoing_lookup |> Map.delete(first))
+    |> Map.put(:choices, choices)
+    |> Map.delete(:first)
 
     proceed(carry, acc)
   end
 
-  def proceed(%{incoming_lookup: incoming_lookup, outgoing_lookup: outgoing_lookup, choices: choices}, acc) do
-    [c | _] = choices
+  def proceed(carry = %{incoming_lookup: incoming_lookup, outgoing_lookup: outgoing_lookup, choices: choices}, acc) do
+    IO.puts "2:: Carry = #{inspect carry}, acc = #{inspect acc}"
+    [next_move | rest_of_choices] = choices
 
+    incoming_links_to_next_move = incoming_lookup[next_move]
+    all_incoming_links_to_next_move_proceeded = Enum.all?(incoming_links_to_next_move, fn x -> Enum.member?(acc, x) end)
+    case all_incoming_links_to_next_move_proceeded do
+      true ->
+        outgoings = outgoing_lookup(next_move)
+        choices = (outgoings ++ rest_of_choices) |> Enum.sort
+        acc = [next_move] ++ acc
+        carry = carry
+        |> Map.put(:outgoing_lookup, outgoing_lookup |> Map.delete(next_move))
+        |> Map.put(:choices, choices)
+
+        proceed(carry, acc)
+      false ->
+        IO.puts "Xxx next move = #{next_move}, incoming_links_to_next_move = #{inspect incoming_links_to_next_move}"
+        next_move = incoming_links_to_next_move |> Enum.find( fn x ->
+          !Enum.member?(acc, x)
+        end)
+        IO.puts "Xxx next move = #{next_move}, "
+        outgoings = outgoing_lookup(next_move)
+        choices = (outgoings ++ (rest_of_choices |> List.delete(next_move))) |> Enum.sort
+        acc = [next_move] ++ acc
+        carry = carry
+        |> Map.put(:outgoing_lookup, outgoing_lookup |> Map.delete(next_move))
+        |> Map.put(:choices, choices)
+    end
   end
 
   @doc """
@@ -86,6 +113,7 @@ defmodule Day7 do
         [a] ++ current_value
       end)
     end)
+    |> Enum.reduce(%{}, fn {k, v}, acc -> acc |> Map.put(k, Enum.sort(v)) end)
   end
 
   @doc """
@@ -105,5 +133,6 @@ defmodule Day7 do
         [b] ++ current_value
       end)
     end)
+    |> Enum.reduce(%{}, fn {k, v}, acc -> acc |> Map.put(k, Enum.sort(v)) end)
   end
 end
