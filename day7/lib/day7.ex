@@ -57,17 +57,17 @@ defmodule Day7 do
   def proceed(carry = %{incoming_lookup: incoming_lookup, outgoing_lookup: outgoing_lookup, choices: []}, acc) do
     IO.puts "0:::::::"
     IO.puts "       #{ y("Carry")}"
-    IO.puts "       #{ y("incoming lookup:")} #{inspect incoming_lookup}"
-    IO.puts "       outgoing lookup: #{inspect outgoing_lookup}"
-    IO.puts "       acc: #{inspect acc}"
+    # IO.puts "       #{ y("incoming lookup:")} #{inspect incoming_lookup}"
+    # IO.puts "       #{ y("outgoing lookup:")} #{inspect outgoing_lookup}"
+    IO.puts "       #{ y("acc:")} #{inspect acc}"
     IO.puts "============================== \n"
     acc |> Enum.reverse |> Enum.join("")
   end
 
   def proceed(carry = %{incoming_lookup: incoming_lookup, outgoing_lookup: outgoing_lookup, choices: choices}, acc) do
     IO.puts "2:::::::"
-    IO.puts "       #{ g("incoming lookup:")} #{inspect incoming_lookup}"
-    IO.puts "       #{ g("outgoing lookup:")} #{inspect outgoing_lookup}"
+    # IO.puts "       #{ g("incoming lookup:")} #{inspect incoming_lookup}"
+    # IO.puts "       #{ g("outgoing lookup:")} #{inspect outgoing_lookup}"
     IO.puts "       #{ g("choices:")} #{inspect choices}"
     IO.puts "       #{ g("acc:")} #{inspect acc}"
     [next_move | rest_of_choices] = choices
@@ -88,8 +88,8 @@ defmodule Day7 do
         |> Map.put(:outgoing_lookup, outgoing_lookup |> Map.delete(next_move))
         |> Map.put(:choices, choices)
 
-        IO.puts "       #{ g("incoming lookup:")} #{inspect incoming_lookup}"
-        IO.puts "       #{ g("outgoing lookup:")} #{inspect outgoing_lookup}"
+        # IO.puts "       #{ g("incoming lookup:")} #{inspect incoming_lookup}"
+        # IO.puts "       #{ g("outgoing lookup:")} #{inspect outgoing_lookup}"
         IO.puts "       #{ g("choices:")} #{inspect choices}"
         IO.puts "       #{ g("acc:")} #{inspect acc}"
         IO.puts "============================== \n"
@@ -97,8 +97,9 @@ defmodule Day7 do
       false ->
         IO.puts "                     "
         IO.puts "       #{r("can not")} proceed next move"
-        [next_move | _] = rest_of_choices
-        IO.puts "       #{ g("new next move:")} #{inspect next_move}"
+        # [next_move | _] = rest_of_choices     # -> wrong assumption, the first item of rest may not give the proceedable node.
+        next_move = find_next_move(rest_of_choices, incoming_lookup, outgoing_lookup, acc)
+        IO.puts "       #{ g("new next move:")} #{inspect next_move}"   #
         outgoings = outgoing_lookup[next_move] || []
         unprocessed_outgoings = outgoings |> Enum.filter(fn x -> !Enum.member?(acc, x) end)
         choices = (unprocessed_outgoings ++ (rest_of_choices |> List.delete(next_move))) |> Enum.uniq |> Enum.sort
@@ -106,13 +107,24 @@ defmodule Day7 do
         carry = carry
         |> Map.put(:outgoing_lookup, outgoing_lookup |> Map.delete(next_move))
         |> Map.put(:choices, choices)
-        IO.puts "       #{ y("incoming lookup:")} #{inspect incoming_lookup}"
-        IO.puts "       #{ y("outgoing lookup:")} #{inspect outgoing_lookup}"
+        # IO.puts "       #{ y("incoming lookup:")} #{inspect incoming_lookup}"
+        # IO.puts "       #{ y("outgoing lookup:")} #{inspect outgoing_lookup}"
         IO.puts "       #{ y("choices:")} #{inspect choices}"
         IO.puts "       #{ y("acc:")} #{inspect acc}"
         IO.puts "============================== \n"
         proceed(carry, acc)
     end
+  end
+
+  def find_next_move(choices, incoming_lookup, outgoing_lookup, processed) do
+    choices |> Enum.reduce_while(nil, fn c, acc ->
+      incoming_links_to_next_move = incoming_lookup[c] || []
+        all_incoming_links_to_next_move_proceeded = Enum.all?(incoming_links_to_next_move, fn x -> Enum.member?(processed, x) end)
+        case all_incoming_links_to_next_move_proceeded do
+          true -> {:halt, c}
+          false -> {:cont, c}
+        end
+    end)
   end
 
   @doc """
