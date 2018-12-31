@@ -146,4 +146,22 @@ defmodule Day7 do
     end)
     |> Enum.reduce(%{}, fn {k, v}, acc -> acc |> Map.put(k, Enum.sort(v)) end)
   end
+
+  @doc """
+  Return the list of duration for the given steps
+
+  ## Example
+      iex> Day7.steps_to_durations("ABC")
+      [61, 62, 63]
+  """
+  def steps_to_durations(steps) do
+    step_durations = (for n <- ?A..?Z, do: << n :: utf8 >>) |> Enum.with_index(61) |> Enum.into(%{})
+
+    steps
+    |> String.graphemes
+    |> Enum.map(fn s ->
+      IO.puts("input = #{s}")
+      step_durations[s]
+    end)
+  end
 end
