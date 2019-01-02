@@ -60,10 +60,7 @@ defmodule Day7 do
     )
   end
 
-  def proceed(
-        carry = %{incoming_lookup: incoming_lookup, outgoing_lookup: outgoing_lookup, choices: []},
-        acc
-      ) do
+  def proceed(%{choices: []}, acc) do
     acc |> Enum.reverse() |> Enum.join("")
   end
 
@@ -75,7 +72,7 @@ defmodule Day7 do
         },
         acc
       ) do
-    next_move = find_next_move(choices, incoming_lookup, outgoing_lookup, acc)
+    next_move = find_next_move(choices, incoming_lookup, acc)
     outgoings = outgoing_lookup[next_move] || []
     unprocessed_outgoings = outgoings |> Enum.filter(fn x -> !Enum.member?(acc, x) end)
 
@@ -92,9 +89,9 @@ defmodule Day7 do
     proceed(carry, acc)
   end
 
-  def find_next_move(choices, incoming_lookup, outgoing_lookup, processed) do
+  def find_next_move(choices, incoming_lookup, processed) do
     choices
-    |> Enum.reduce_while(nil, fn c, acc ->
+    |> Enum.reduce_while(nil, fn c, _ ->
       incoming_links_to_next_move = incoming_lookup[c] || []
 
       all_incoming_links_to_next_move_proceeded =
@@ -148,20 +145,111 @@ defmodule Day7 do
   end
 
   @doc """
-  Return the list of duration for the given steps
+  Return the map of duration for the given steps
 
   ## Example
       iex> Day7.steps_to_durations("ABC")
-      [61, 62, 63]
+      %{"A" => 61, "B" => 62, "C" => 63}
   """
   def steps_to_durations(steps) do
     step_durations = (for n <- ?A..?Z, do: << n :: utf8 >>) |> Enum.with_index(61) |> Enum.into(%{})
 
     steps
     |> String.graphemes
-    |> Enum.map(fn s ->
-      IO.puts("input = #{s}")
-      step_durations[s]
+    |> Enum.reduce(%{}, fn s, acc ->
+      Map.put(acc, s, step_durations[s])
     end)
   end
+
+  @doc """
+  Calculate the duration for completing the task with specific amount of worker
+
+  ## Example
+      iex> Day7.duration("AB", 1)
+      123
+      iex> Day7.duration("AB", 2)
+      62
+  """
+  def duration(steps, worker, incoming_lookup) do
+    duration(steps, steps_to_durations(steps), worker, incoming_lookup, [], 0)
+  end
+
+  # def duration(_, _step_durations, _worker, _incoming_lookup, _processing, 20), do: 20
+  def duration("", _step_durations, _worker, _incoming_lookup, _processing, acc), do: acc
+
+  def duration(steps, step_durations, worker, incoming_lookup, processing, second_count) do
+
+    possible_steps = get_possible_steps(steps, incoming_lookup, worker, processing) |> Enum.take(worker)
+    processing = possible_steps
+    IO.puts("STEPS: #{steps}")
+    IO.puts("PROCESS at second: #{second_count}")
+    IO.puts("\tPossible step: #{inspect possible_steps}")
+    IO.puts("\tStep duration: #{inspect step_durations}")
+
+    # Progress
+    step_durations = step_durations |> Enum.reduce(%{}, fn {k, v}, acc ->
+      case Enum.member?(possible_steps, k) do
+        true ->
+          acc |> Map.put(k, v - 1)
+        false ->
+          acc |> Map.put(k, v)
+      end
+    end)
+
+    # Get list of steps to update for incoming links
+    finished_steps = step_durations |> Enum.reduce([], fn {k, v}, acc ->
+      case v do
+        0 -> [k] ++ acc
+        _ -> acc
+      end
+    end)
+
+    processing = processing -- finished_steps
+
+    # Get rid of steps that are finished
+    step_durations = step_durations |> Enum.reduce(%{}, fn {k, v}, acc ->
+      case v do
+        0 -> acc
+        _ -> acc |> Map.put(k, v)
+      end
+    end)
+
+    incoming_lookup = incoming_lookup |> Enum.reduce(%{}, fn {k, v}, acc ->
+      remaining_deps = v -- finished_steps
+      case remaining_deps do
+        [] -> acc
+        _ -> Map.put(acc, k, remaining_deps)
+      end
+    end)
+    IO.puts("---- FINISHED STEPS = #{inspect finished_steps}")
+    IO.puts("---- updated_incoming_lookup = #{inspect incoming_lookup}")
+    IO.puts("==================\n")
+
+    steps = case finished_steps do
+      [] -> steps
+      _ -> steps |> String.replace(finished_steps, "")
+    end
+    duration(steps, step_durations, worker, incoming_lookup, processing, second_count + 1)
+  end
+
+  @doc """
+  Get possible steps where incoming link count eqauls to zero
+
+  ## Example
+      iex> Day7.get_possible_steps("AB", %{"B" => ["A"]})
+      ["A"]
+      iex> Day7.get_possible_steps("CAB", %{"B" => ["A"]})
+      ["A", "C"]
+  """
+  def get_possible_steps(steps, incoming_lookup, worker, processing) do
+    steps_with_incoming_links = incoming_lookup |> Map.keys
+    steps_with_zero_incoming_links = steps
+    |> String.graphemes |> Enum.filter(fn c -> !Enum.member?(steps_with_incoming_links, c) && !Enum.member?(processing, c) end) |> Enum.sort
+
+    to_take = worker - length(processing)
+    processing ++ Enum.take(steps_with_zero_incoming_links, to_take)
+  end
+
+
+
 end
