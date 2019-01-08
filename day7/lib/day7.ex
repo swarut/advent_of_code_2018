@@ -250,6 +250,4 @@ defmodule Day7 do
     processing ++ Enum.take(steps_with_zero_incoming_links, to_take)
   end
 
-
-
 end
