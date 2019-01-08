@@ -249,6 +249,4 @@ defmodule Day7 do
     to_take = worker - length(processing)
     processing ++ Enum.take(steps_with_zero_incoming_links, to_take)
   end
-
-
 end
