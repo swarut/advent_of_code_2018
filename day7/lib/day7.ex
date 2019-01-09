@@ -152,10 +152,10 @@ defmodule Day7 do
       %{"A" => 61, "B" => 62, "C" => 63}
   """
   def steps_to_durations(steps) do
-    step_durations = (for n <- ?A..?Z, do: << n :: utf8 >>) |> Enum.with_index(61) |> Enum.into(%{})
+    step_durations = for(n <- ?A..?Z, do: <<n::utf8>>) |> Enum.with_index(61) |> Enum.into(%{})
 
     steps
-    |> String.graphemes
+    |> String.graphemes()
     |> Enum.reduce(%{}, fn s, acc ->
       Map.put(acc, s, step_durations[s])
     end)
@@ -178,57 +178,62 @@ defmodule Day7 do
   def duration("", _step_durations, _worker, _incoming_lookup, _processing, acc), do: acc
 
   def duration(steps, step_durations, worker, incoming_lookup, processing, second_count) do
+    possible_steps =
+      get_possible_steps(steps, incoming_lookup, worker, processing) |> Enum.take(worker)
 
-    possible_steps = get_possible_steps(steps, incoming_lookup, worker, processing) |> Enum.take(worker)
     processing = possible_steps
-    IO.puts("STEPS: #{steps}")
-    IO.puts("PROCESS at second: #{second_count}")
-    IO.puts("\tPossible step: #{inspect possible_steps}")
-    IO.puts("\tStep duration: #{inspect step_durations}")
 
-    # Progress
-    step_durations = step_durations |> Enum.reduce(%{}, fn {k, v}, acc ->
-      case Enum.member?(possible_steps, k) do
-        true ->
-          acc |> Map.put(k, v - 1)
-        false ->
-          acc |> Map.put(k, v)
-      end
-    end)
+    step_durations =
+      step_durations
+      |> Enum.reduce(%{}, fn {k, v}, acc ->
+        case Enum.member?(possible_steps, k) do
+          true ->
+            acc |> Map.put(k, v - 1)
+
+          false ->
+            acc |> Map.put(k, v)
+        end
+      end)
 
     # Get list of steps to update for incoming links
-    finished_steps = step_durations |> Enum.reduce([], fn {k, v}, acc ->
-      case v do
-        0 -> [k] ++ acc
-        _ -> acc
-      end
-    end)
+    finished_steps =
+      step_durations
+      |> Enum.reduce([], fn {k, v}, acc ->
+        case v do
+          0 -> [k] ++ acc
+          _ -> acc
+        end
+      end)
 
     processing = processing -- finished_steps
 
     # Get rid of steps that are finished
-    step_durations = step_durations |> Enum.reduce(%{}, fn {k, v}, acc ->
-      case v do
-        0 -> acc
-        _ -> acc |> Map.put(k, v)
-      end
-    end)
+    step_durations =
+      step_durations
+      |> Enum.reduce(%{}, fn {k, v}, acc ->
+        case v do
+          0 -> acc
+          _ -> acc |> Map.put(k, v)
+        end
+      end)
 
-    incoming_lookup = incoming_lookup |> Enum.reduce(%{}, fn {k, v}, acc ->
-      remaining_deps = v -- finished_steps
-      case remaining_deps do
-        [] -> acc
-        _ -> Map.put(acc, k, remaining_deps)
-      end
-    end)
-    IO.puts("---- FINISHED STEPS = #{inspect finished_steps}")
-    IO.puts("---- updated_incoming_lookup = #{inspect incoming_lookup}")
-    IO.puts("==================\n")
+    incoming_lookup =
+      incoming_lookup
+      |> Enum.reduce(%{}, fn {k, v}, acc ->
+        remaining_deps = v -- finished_steps
 
-    steps = case finished_steps do
-      [] -> steps
-      _ -> steps |> String.replace(finished_steps, "")
-    end
+        case remaining_deps do
+          [] -> acc
+          _ -> Map.put(acc, k, remaining_deps)
+        end
+      end)
+
+    steps =
+      case finished_steps do
+        [] -> steps
+        _ -> steps |> String.replace(finished_steps, "")
+      end
+
     duration(steps, step_durations, worker, incoming_lookup, processing, second_count + 1)
   end
 
@@ -242,14 +247,17 @@ defmodule Day7 do
       ["A", "C"]
   """
   def get_possible_steps(steps, incoming_lookup, worker, processing) do
-    steps_with_incoming_links = incoming_lookup |> Map.keys
-    steps_with_zero_incoming_links = steps
-    |> String.graphemes |> Enum.filter(fn c -> !Enum.member?(steps_with_incoming_links, c) && !Enum.member?(processing, c) end) |> Enum.sort
+    steps_with_incoming_links = incoming_lookup |> Map.keys()
+
+    steps_with_zero_incoming_links =
+      steps
+      |> String.graphemes()
+      |> Enum.filter(fn c ->
+        !Enum.member?(steps_with_incoming_links, c) && !Enum.member?(processing, c)
+      end)
+      |> Enum.sort()
 
     to_take = worker - length(processing)
     processing ++ Enum.take(steps_with_zero_incoming_links, to_take)
   end
-
-
-
 end
