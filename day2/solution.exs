@@ -48,14 +48,14 @@ defmodule Solution do
     string_length = String.length(first_row)
 
     range = 0..(string_length - 1)
-    common = Enum.reduce_while(range, nil, fn x, acc ->
-      mod = remove_char_at(list, x) |> Enum.sort()
+    common = Enum.reduce_while(range, nil, fn index, acc ->
+      modified_strings = remove_char_at(list, index) |> Enum.sort()
 
       loop_result =
-        Enum.reduce_while(mod, %{previous_seen: nil, matched_common: nil}, fn x, acc ->
+        Enum.reduce_while(modified_strings, %{previous_seen: nil, matched_common: nil}, fn a_string, inner_acc ->
           cond do
-            acc[:previous_seen] == x -> {:halt, Map.put(acc, :matched_common, x)}
-            true -> {:cont, Map.put(acc, :previous_seen, x)}
+            inner_acc[:previous_seen] == a_string -> {:halt, Map.put(inner_acc, :matched_common, a_string)}
+            true -> {:cont, Map.put(inner_acc, :previous_seen, a_string)}
           end
         end)
 
